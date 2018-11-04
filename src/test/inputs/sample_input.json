@@ -1,0 +1,17 @@
+{
+  "hospitals": [
+    {
+      "preferences": ["rid1"],
+      "capacity": 5,
+      "location_id": 2,
+      "id": "hid0"
+    }
+  ],
+  "residents": [
+    {
+      "preferences": ["hid0"],
+      "id": "rid1",
+      "partner": ""
+    }
+  ]
+}
