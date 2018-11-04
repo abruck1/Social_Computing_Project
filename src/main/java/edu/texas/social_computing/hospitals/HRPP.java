@@ -6,8 +6,9 @@ public class HRPP {
     // check all couples for proximity violations (location mismatch)
 
     // while (couple proximity violations exist)
+    // Task 1
 
-    // pick non-dominant partner (not matched partner or partner with worse preference match)
+        // pick non-dominant partner (not matched partner or partner with worse preference match)
 
         // remove all hospitals violating proximity constraint (make a copy dont modify original preference)
 
@@ -17,11 +18,12 @@ public class HRPP {
 
         // if matched -> good
 
+        // Task 2
         // if not matched
 
             // unmatch BOTH in the couple and add both back to the queue (now no one is dominant)
 
             // reset non-dominant partner's preference list
 
-            // start from dominant partner's next hospital preference
+            // start from dominant partner's next hospital preference (changing the rank pointer)
 }
