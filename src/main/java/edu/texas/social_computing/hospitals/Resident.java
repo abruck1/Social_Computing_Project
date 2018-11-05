@@ -1,18 +1,26 @@
 package edu.texas.social_computing.hospitals;
 
+import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableList;
+
 import java.util.List;
 
-public class Resident {
-    private Resident partner;
-    private List<Hospital> preferences;
-    private List<Hospital> excludedHospitals;
+@AutoValue
+public abstract class Resident {
+    public abstract String getId();
+    public abstract String getPartnerId();
+    public abstract ImmutableList<Hospital> getInitialPreferences();
 
-    public Resident getPartner() {
-        return partner;
+    static Resident create(String id, String partnerId, Iterable<Hospital> initialPreferences) {
+        return new AutoValue_Resident(id, partnerId, ImmutableList.copyOf(initialPreferences));
     }
 
-    public List<Hospital> getPreferences() {
-        return preferences;
+    /**
+     * Returns the current view of the preferences, which is some modified version of the
+     * initial preferences.
+     */
+    public ImmutableList<Hospital> getPreferences() {
+        return getInitialPreferences();
     }
 
     /**

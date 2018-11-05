@@ -1,56 +1,44 @@
 package edu.texas.social_computing.hospitals;
 
+import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableList;
+
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
-public class Hospital {
-    private int locationId;
-    private Set<Resident> residents; // current residents
-    private List<Resident> preferences;
-    private int capacity;
+@AutoValue
+public abstract class Hospital {
+    public abstract String getId();
 
-    public int getLocationId() {
-        return locationId;
+    public abstract int getLocationId();
+
+    public abstract int getCapacity();
+
+    public abstract Set<Resident> getResidents(); // current residents
+
+    public abstract ImmutableList<Resident> getPreferences();
+
+    public static Hospital create(String id, int locationId, int capacity, Iterable<Resident> preferences) {
+        return new AutoValue_Hospital(
+                id, locationId, capacity, new HashSet<Resident>(), ImmutableList.copyOf(preferences));
     }
 
-    public void setLocationId(int locationId) {
-        this.locationId = locationId;
-    }
-
-    public Set<Resident> getResidents() {
-        return residents;
-    }
-
-    public void setResidents(Set<Resident> residents) {
-        this.residents = residents;
-    }
-
-    public List<Resident> getPreferences() {
-        return preferences;
-    }
-
-    public void setPreferences(List<Resident> preferences) {
-        this.preferences = preferences;
-    }
-
-    public int getCapacity() {
-        return capacity;
-    }
-
-    public void setCapacity(int capacity) {
-        this.capacity = capacity;
-    }
-
-    public static Hospital getAssignment(Resident resident, List<Hospital> hospitals) {
-        return new Hospital();
+    /**
+     * Gets the {@link Hospital} that a {@link Resident} is assigned to. Returns empty {@link Optional} if
+     * {@link Resident} is not assigned to any of the given {@link Hospital}s.
+     */
+    public static Optional<Hospital> getAssignment(Resident resident, List<Hospital> hospitals) {
+        return Optional.empty();
     }
 
     public boolean isOverSubscribed() {
-        return residents.size() > capacity;
+        return getResidents().size() > getCapacity();
     }
 
     public boolean isFull() {
-        return residents.size() == capacity;
+        return getResidents().size() == getCapacity();
     }
 
     public void assign(Resident resident) {
@@ -58,15 +46,13 @@ public class Hospital {
     }
 
     /**
-     *
      * @return rejected resident
      */
     public Resident rejectWorstResident() {
-        return new Resident();
+        return null;
     }
 
     /**
-     *
      * @return worst resident
      */
     public Resident getWorstResident() {
@@ -74,14 +60,12 @@ public class Hospital {
     }
 
     /**
-     *
      * @param resident
      * @return all residents worse than provided resident
      */
     public List<Resident> getWorseThan(Resident resident) {
         return null;
     }
-
 
 
 }
