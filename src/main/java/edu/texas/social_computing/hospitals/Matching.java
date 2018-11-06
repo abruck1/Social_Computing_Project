@@ -4,12 +4,11 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Matching {
 
-    private static final Hospital NO_MATCH = Hospital.create("NO_MATCH", -1, 0, ImmutableList.of());
+    static final Hospital NO_MATCH = Hospital.create("NO_MATCH", -1, 0, ImmutableList.of());
 
     private Multimap<Hospital, Resident> hospitalAssignments = HashMultimap.create();
     private Map<Resident, Hospital> residentAssignments = new HashMap<>();
@@ -42,6 +41,36 @@ public class Matching {
 
     public boolean isFull(Hospital h) {
         return getAssignedResidents(h).size() == h.getCapacity();
+    }
+
+    /**
+     *
+     * @param residents : a list of Non-Dominant (ND) residents in a matching that needs to be checked to see
+     *                 if any of the residents in the list violate a proximity constraint
+     * @return a set of residents that violate the proximity constraint AND are the worse placed partner
+     */
+    public Set<Resident> getNDProximityViolators(List<Resident> residents, ResidentTable residentTable) {
+        Set<Resident> freeViolatingResidents = new HashSet<>();
+        for(Resident resident : residents) {
+            if(!resident.hasPartner()) continue;
+            Resident partner = residentTable.getResidentById(resident.getPartnerId());
+            Hospital assignedHospital = this.getAssignedHospital(resident);
+            Hospital partnerAssignedHospital = this.getAssignedHospital(partner);
+            if(assignedHospital == Matching.NO_MATCH) continue;
+            if(partnerAssignedHospital == Matching.NO_MATCH) {
+                freeViolatingResidents.add(partner);
+                continue;
+            }
+            int location = assignedHospital.getLocationId();
+            int partnerLocation = partnerAssignedHospital.getLocationId();
+            if(location != partnerLocation) {
+                // if there is a tie for worse placed partner we only want 1 to be non-dominant
+                if(!freeViolatingResidents.contains(partner)) {
+                    freeViolatingResidents.add(MatchingUtils.worsePlacedResident(this, resident, partner));
+                }
+            }
+        }
+        return freeViolatingResidents;
     }
 
 }

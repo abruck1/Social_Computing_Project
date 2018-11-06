@@ -16,7 +16,7 @@ public class Main {
         ResidentTable residentTable = ResidentTable.create(residents);
 
         // call HRPP
-        // HRPP.run(hospitalTable, residentTable);
+        new HRPP().run(hospitalTable, residentTable);
 
     }
 }
