@@ -10,39 +10,18 @@ import java.util.Set;
 
 @AutoValue
 public abstract class Hospital {
+
     public abstract String getId();
 
     public abstract int getLocationId();
 
     public abstract int getCapacity();
 
-    public abstract Set<Resident> getResidents(); // current residents
+    public abstract ImmutableList<String> getPreferences();
 
-    public abstract ImmutableList<Resident> getPreferences();
-
-    public static Hospital create(String id, int locationId, int capacity, Iterable<Resident> preferences) {
+    public static Hospital create(String id, int locationId, int capacity, Iterable<String> preferences) {
         return new AutoValue_Hospital(
-                id, locationId, capacity, new HashSet<Resident>(), ImmutableList.copyOf(preferences));
-    }
-
-    /**
-     * Gets the {@link Hospital} that a {@link Resident} is assigned to. Returns empty {@link Optional} if
-     * {@link Resident} is not assigned to any of the given {@link Hospital}s.
-     */
-    public static Optional<Hospital> getAssignment(Resident resident, List<Hospital> hospitals) {
-        return Optional.empty();
-    }
-
-    public boolean isOverSubscribed() {
-        return getResidents().size() > getCapacity();
-    }
-
-    public boolean isFull() {
-        return getResidents().size() == getCapacity();
-    }
-
-    public void assign(Resident resident) {
-
+                id, locationId, capacity, ImmutableList.copyOf(preferences));
     }
 
     /**
