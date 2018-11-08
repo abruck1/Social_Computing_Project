@@ -43,6 +43,16 @@ public class Matching {
         return getAssignedResidents(h).size() == h.getCapacity();
     }
 
+    public Set<Resident> getAllUnassigned(List<Resident> residents) {
+        Set<Resident> unassignedResidents = new HashSet<>();
+        for(Resident resident : residents) {
+            if(!hasAssignment(resident)) {
+                unassignedResidents.add(resident);
+            }
+        }
+        return unassignedResidents;
+    }
+
     /**
      *
      * @param residents : a list of Non-Dominant (ND) residents in a matching that needs to be checked to see
@@ -66,7 +76,9 @@ public class Matching {
             if(location != partnerLocation) {
                 // if there is a tie for worse placed partner we only want 1 to be non-dominant
                 if(!freeViolatingResidents.contains(partner)) {
-                    freeViolatingResidents.add(MatchingUtils.worsePlacedResident(this, resident, partner));
+                    Resident ndPartner = MatchingUtils.worsePlacedResident(this, resident, partner);
+                    freeViolatingResidents.add(ndPartner);
+                    unassign(ndPartner, partnerAssignedHospital);
                 }
             }
         }

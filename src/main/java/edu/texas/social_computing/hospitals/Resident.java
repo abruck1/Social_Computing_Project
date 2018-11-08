@@ -3,12 +3,15 @@ package edu.texas.social_computing.hospitals;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @AutoValue
 public abstract class Resident {
 
     private static final String NO_PARTNER = "";
+
+    private List<String> preferences;
 
     public abstract String getId();
 
@@ -35,15 +38,7 @@ public abstract class Resident {
      * initial preferences.
      */
     public ImmutableList<String> getPreferences() {
-        return getInitialPreferences();
-    }
-
-    /**
-     * @param locationId
-     * @return hospitals in the intersection of the given list and preferences lists
-     */
-    public List<Hospital> preferencesForLocation(int locationId) {
-        return null;
+        return ImmutableList.copyOf(this.preferences);
     }
 
     /**
@@ -62,5 +57,19 @@ public abstract class Resident {
         return getPreferences().contains(hospital.getId())
                 ? getPreferences().indexOf(hospital.getId())
                 : Integer.MAX_VALUE;
+    }
+
+    public void setPrefsByLocation(Hospital hospital, HospitalTable hospitalTable) {
+        List<String> locationBasedHospitalPrefs = new ArrayList<>();
+        for(String hospitalId : getPreferences()) {
+            if(hospitalTable.getHospitalById(hospitalId).getLocationId() == hospital.getLocationId()) {
+                locationBasedHospitalPrefs.add(hospitalId);
+            }
+        }
+        this.preferences = locationBasedHospitalPrefs;
+    }
+
+    public void resetPreferences() {
+        this.preferences = getInitialPreferences();
     }
 }
