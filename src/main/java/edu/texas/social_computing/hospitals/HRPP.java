@@ -17,7 +17,7 @@ public class HRPP {
         Queue<Resident> violatingResidentsQ = new LinkedList<>(freeViolatingResidents);
 
         // while (couple proximity violations exist)
-        while(!violatingResidentsQ.isEmpty()) {
+        while (!violatingResidentsQ.isEmpty()) {
 
             // pick non-dominant partner (not matched partner or partner with worse preference match)
             Resident ndResident = violatingResidentsQ.poll();
@@ -31,19 +31,28 @@ public class HRPP {
             // try to match that person
             matching = HRP.run(hospitalTable, residentTable, unmatchedQueue);
             // if matched -> good
-            if(matching.hasAssignment(ndResident)) {
+            if (matching.hasAssignment(ndResident)) {
                 continue;
             }
-        }
-    }
 
-        // Task 2
-        // if not matched
-
+            // Task 2
+            // if partners still not proximally matched
             // unmatch BOTH in the couple and add both back to the queue (now no one is dominant)
+            matching.unassign(ndResident);
+            matching.unassign(partner);
+
+            // ndResident should still be in queue, right???
+            unmatchedQueue.add(partner);
 
             // reset non-dominant partner's preference list
+            ndResident.resetPreferences();
 
             // start from dominant partner's next hospital preference (changing the rank pointer)
+            residentTable.incrementResidentRankProgress(partner);
+            partner.setPrefsByProgress(residentTable.getResidentRankProgress(partner));
 
+            // run again
+            HRP.run(hospitalTable, residentTable, unmatchedQueue);
+        }
+    }
 }

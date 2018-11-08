@@ -18,7 +18,8 @@ public class Matching {
         residentAssignments.put(r, h);
     }
 
-    public void unassign(Resident r, Hospital h) {
+    public void unassign(Resident r) {
+        Hospital h = getAssignedHospital(r);
         hospitalAssignments.remove(h, r);
         residentAssignments.remove(r);
     }
@@ -78,7 +79,7 @@ public class Matching {
                 if(!freeViolatingResidents.contains(partner)) {
                     Resident ndPartner = MatchingUtils.worsePlacedResident(this, resident, partner);
                     freeViolatingResidents.add(ndPartner);
-                    unassign(ndPartner, partnerAssignedHospital);
+                    unassign(ndPartner);
                 }
             }
         }

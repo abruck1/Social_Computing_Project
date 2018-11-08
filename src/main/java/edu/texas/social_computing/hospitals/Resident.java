@@ -13,6 +13,8 @@ public abstract class Resident {
 
     private List<String> preferences;
 
+    private int rankProgress = 0;
+
     public abstract String getId();
 
     public abstract String getPartnerId();
@@ -67,6 +69,10 @@ public abstract class Resident {
             }
         }
         this.preferences = locationBasedHospitalPrefs;
+    }
+
+    public void setPrefsByProgress(int rankProgress) {
+        this.preferences = getInitialPreferences().subList(rankProgress, getInitialPreferences().size())
     }
 
     public void resetPreferences() {
