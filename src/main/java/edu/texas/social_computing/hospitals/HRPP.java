@@ -5,21 +5,15 @@ import com.google.common.collect.ImmutableList;
 import java.util.*;
 
 public class HRPP {
-    private ResidentTable residentTable;
-    private HospitalTable hospitalTable;
-    private Matching matching;
 
-    public void run(HospitalTable hospitalTable, ResidentTable residentTable) {
-        this.hospitalTable = hospitalTable;
-        this.residentTable = residentTable;
-
+    public static void run(HospitalTable hospitalTable, ResidentTable residentTable) {
         // run hospital-resident matching alg (couple agnostic)
-        ImmutableList<Resident> initialQueue = this.residentTable.getAll();
-        this.matching = HRP.run(this.hospitalTable, this.residentTable, new LinkedList<>(initialQueue));
+        ImmutableList<Resident> initialQueue = residentTable.getAll();
+        Matching matching = HRP.run(hospitalTable, residentTable, new LinkedList<>(initialQueue));
 
         // check all couples for proximity violations (location mismatch)
         Set<Resident> freeViolatingResidents = matching.getNDProximityViolators(residentTable.getAll(), residentTable);
-        Queue<Resident> unmatchedQueue = new LinkedList<>(matching.getAllUnassigned(this.residentTable.getAll()));
+        Queue<Resident> unmatchedQueue = new LinkedList<>(matching.getAllUnassigned(residentTable.getAll()));
         Queue<Resident> violatingResidentsQ = new LinkedList<>(freeViolatingResidents);
 
         // while (couple proximity violations exist)
@@ -30,12 +24,12 @@ public class HRPP {
             Resident partner = residentTable.getResidentById(ndResident.getPartnerId());
 
             // remove all hospitals violating proximity constraint (make a copy dont modify original preference)
-            ndResident.setPrefsByLocation(this.matching.getAssignedHospital(partner), this.hospitalTable);
+            ndResident.setPrefsByLocation(matching.getAssignedHospital(partner).getLocationId(), hospitalTable);
 
             // put back in the queue
             ((LinkedList<Resident>) unmatchedQueue).addFirst(ndResident);
             // try to match that person
-            this.matching = HRP.run(this.hospitalTable, this.residentTable, unmatchedQueue);
+            matching = HRP.run(hospitalTable, residentTable, unmatchedQueue);
             // if matched -> good
             if(matching.hasAssignment(ndResident)) {
                 continue;

@@ -59,10 +59,10 @@ public abstract class Resident {
                 : Integer.MAX_VALUE;
     }
 
-    public void setPrefsByLocation(Hospital hospital, HospitalTable hospitalTable) {
+    public void setPrefsByLocation(int locationId, HospitalTable hospitalTable) {
         List<String> locationBasedHospitalPrefs = new ArrayList<>();
         for(String hospitalId : getPreferences()) {
-            if(hospitalTable.getHospitalById(hospitalId).getLocationId() == hospital.getLocationId()) {
+            if(hospitalTable.getHospitalById(hospitalId).getLocationId() == locationId) {
                 locationBasedHospitalPrefs.add(hospitalId);
             }
         }

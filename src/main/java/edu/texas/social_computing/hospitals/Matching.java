@@ -8,7 +8,7 @@ import java.util.*;
 
 public class Matching {
 
-    static final Hospital NO_MATCH = Hospital.create("NO_MATCH", -1, 0, ImmutableList.of());
+    private static final Hospital NO_MATCH = Hospital.create("NO_MATCH", -1, 0, ImmutableList.of());
 
     private Multimap<Hospital, Resident> hospitalAssignments = HashMultimap.create();
     private Map<Resident, Hospital> residentAssignments = new HashMap<>();
@@ -64,13 +64,13 @@ public class Matching {
         for(Resident resident : residents) {
             if(!resident.hasPartner()) continue;
             Resident partner = residentTable.getResidentById(resident.getPartnerId());
-            Hospital assignedHospital = this.getAssignedHospital(resident);
-            Hospital partnerAssignedHospital = this.getAssignedHospital(partner);
-            if(assignedHospital == Matching.NO_MATCH) continue;
-            if(partnerAssignedHospital == Matching.NO_MATCH) {
+            if(!hasAssignment(resident)) continue;
+            if(!hasAssignment(partner)) {
                 freeViolatingResidents.add(partner);
                 continue;
             }
+            Hospital assignedHospital = this.getAssignedHospital(resident);
+            Hospital partnerAssignedHospital = this.getAssignedHospital(partner);
             int location = assignedHospital.getLocationId();
             int partnerLocation = partnerAssignedHospital.getLocationId();
             if(location != partnerLocation) {
