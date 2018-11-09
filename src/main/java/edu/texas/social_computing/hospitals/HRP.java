@@ -1,5 +1,7 @@
 package edu.texas.social_computing.hospitals;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.*;
 
 public class HRP {
@@ -27,7 +29,9 @@ public class HRP {
      * }
      */
 
-    public static Matching run(HospitalTable hospitalTable, ResidentTable residentTable, Queue<Resident> freeResidents) {
+    public static Matching run(@NotNull HospitalTable hospitalTable,
+                               ResidentTable residentTable,
+                               @NotNull Queue<Resident> freeResidents) {
         Iterator<Resident> freeResidentsItir = freeResidents.iterator();
         Matching m = new Matching();
 
@@ -45,7 +49,7 @@ public class HRP {
         List<String> currentResidentPref = ResidentsPrefs.get(currentResident);
         Iterator currentResidentPrefItir = currentResidentPref.iterator();
         while (!m.hasAssignment(currentResident) &&
-                (ResidentsPrefs.get(currentResident).size() > 0)) {
+                (currentResidentPref.size() > 0)) {
             Hospital hospital = hospitalTable.getHospitalById((String) currentResidentPrefItir.next());
 
             m.assign(currentResident, hospital);
@@ -70,7 +74,7 @@ public class HRP {
 
             }
 
-            if (m.hasAssignment(currentResident)) {
+            if (m.hasAssignment(currentResident) || currentResidentPref.size() == 0) {
                 currentResident = freeResidentsItir.next();
                 currentResidentPref = ResidentsPrefs.get(currentResident);
                 currentResidentPrefItir = currentResidentPref.iterator();
