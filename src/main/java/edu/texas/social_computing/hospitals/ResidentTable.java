@@ -10,13 +10,17 @@ import java.util.Map;
 public class ResidentTable {
 
     private Map<String, Resident> residentMap = new HashMap<>();
+    private Map<String, Integer> residentRankProgress = new HashMap<>();
 
     public static ResidentTable create(Iterable<Resident> residents) {
         return new ResidentTable(residents);
     }
 
     private ResidentTable(Iterable<Resident> residents) {
-        residents.forEach(this::add);
+        for (Resident resident : residents) {
+            add(resident);
+            residentRankProgress.put(resident.getId(), 0);
+        }
     }
 
     public void add(Resident r) {
@@ -30,5 +34,13 @@ public class ResidentTable {
 
     public ImmutableList<Resident> getAll() {
         return ImmutableList.copyOf(residentMap.values());
+    }
+
+    public int getResidentRankProgress(Resident r) {
+        return residentRankProgress.get(r.getId());
+    }
+
+    public void incrementResidentRankProgress(Resident r) {
+        residentRankProgress.put(r.getId(), residentRankProgress.get(r.getId()) + 1);
     }
 }
