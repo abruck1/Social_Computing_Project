@@ -13,8 +13,6 @@ public abstract class Resident {
 
     private List<String> preferences;
 
-    private int rankProgress = 0;
-
     public abstract String getId();
 
     public abstract String getPartnerId();
@@ -63,8 +61,8 @@ public abstract class Resident {
 
     public void setPrefsByLocation(int locationId, HospitalTable hospitalTable) {
         List<String> locationBasedHospitalPrefs = new ArrayList<>();
-        for(String hospitalId : getPreferences()) {
-            if(hospitalTable.getHospitalById(hospitalId).getLocationId() == locationId) {
+        for (String hospitalId : getPreferences()) {
+            if (hospitalTable.getHospitalById(hospitalId).getLocationId() == locationId) {
                 locationBasedHospitalPrefs.add(hospitalId);
             }
         }
@@ -72,7 +70,7 @@ public abstract class Resident {
     }
 
     public void setPrefsByProgress(int rankProgress) {
-        this.preferences = getInitialPreferences().subList(rankProgress, getInitialPreferences().size())
+        this.preferences = getInitialPreferences().subList(rankProgress, getInitialPreferences().size());
     }
 
     public void resetPreferences() {

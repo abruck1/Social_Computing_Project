@@ -52,7 +52,7 @@ public class HRPP {
             partner.setPrefsByProgress(residentTable.getResidentRankProgress(partner));
 
             // run again
-            HRP.run(hospitalTable, residentTable, unmatchedQueue);
+            matching = HRP.run(hospitalTable, residentTable, unmatchedQueue);
         }
     }
 }
