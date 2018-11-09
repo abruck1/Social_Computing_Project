@@ -1,20 +1,17 @@
 package edu.texas.social_computing.hospitals;
 
-import com.google.common.collect.ImmutableList;
-
 import java.util.*;
 
 public class HRPP {
 
     public static void run(HospitalTable hospitalTable, ResidentTable residentTable) {
         // run hospital-resident matching alg (couple agnostic)
-        ImmutableList<Resident> initialQueue = residentTable.getAll();
-        Matching matching = HRP.run(hospitalTable, residentTable, new LinkedList<>(initialQueue));
+        Deque<Resident> initialQueue = new ArrayDeque<>(residentTable.getAll());
+        Matching matching = HRP.run(hospitalTable, residentTable, initialQueue);
 
         // check all couples for proximity violations (location mismatch)
-        Set<Resident> freeViolatingResidents = matching.getNDProximityViolators(residentTable.getAll(), residentTable);
-        Queue<Resident> unmatchedQueue = new LinkedList<>(matching.getAllUnassigned(residentTable.getAll()));
-        Queue<Resident> violatingResidentsQ = new LinkedList<>(freeViolatingResidents);
+        Deque<Resident> unmatchedQueue = new ArrayDeque<>(matching.getAllUnassigned(residentTable.getAll()));
+        Deque<Resident> violatingResidentsQ = computeViolatingResidentQ(matching, residentTable);
 
         // while (couple proximity violations exist)
         while (!violatingResidentsQ.isEmpty()) {
@@ -27,7 +24,7 @@ public class HRPP {
             ndResident.setPrefsByLocation(matching.getAssignedHospital(partner).getLocationId(), hospitalTable);
 
             // put back in the queue
-            ((LinkedList<Resident>) unmatchedQueue).addFirst(ndResident);
+            unmatchedQueue.addFirst(ndResident);
             // try to match that person
             matching = HRP.run(hospitalTable, residentTable, unmatchedQueue);
             // if matched -> good
@@ -53,6 +50,15 @@ public class HRPP {
 
             // run again
             matching = HRP.run(hospitalTable, residentTable, unmatchedQueue);
+
+            // check for proximity violations again ... could be some new ones
+            violatingResidentsQ = computeViolatingResidentQ(matching, residentTable);
         }
+    }
+
+    private static Deque<Resident> computeViolatingResidentQ(Matching matching, ResidentTable residentTable) {
+        Set<Resident> freeViolatingResidents = matching.getNDProximityViolators(residentTable.getAll(), residentTable);
+        return new ArrayDeque<>(freeViolatingResidents);
+
     }
 }
