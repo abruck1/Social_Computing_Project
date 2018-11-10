@@ -49,7 +49,7 @@ public class HRP {
         Iterator<String> currentResidentPrefItir = currentResidentPref.iterator();
         while (!m.hasAssignment(currentResident) &&
                 (currentResidentPref.size() > 0)) {
-            Hospital hospital = hospitalTable.getHospitalById((String) currentResidentPrefItir.next());
+            Hospital hospital = hospitalTable.getHospitalById(currentResidentPrefItir.next());
 
             m.assign(currentResident, hospital);
             if (m.isOverSubscribed(hospital)) {
