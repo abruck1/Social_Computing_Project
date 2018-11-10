@@ -32,22 +32,21 @@ public class HRP {
     public static Matching run(@NotNull HospitalTable hospitalTable,
                                ResidentTable residentTable,
                                @NotNull Queue<Resident> freeResidents) {
-        Iterator<Resident> freeResidentsItir = freeResidents.iterator();
         Matching m = new Matching();
 
-        Map<Hospital,List<String>> HospitalsPrefs = new HashMap<>();
+        Map<Hospital,List<String>> hospitalsPrefs = new HashMap<>();
         for (Hospital hospital: hospitalTable.getAll()) {
-            HospitalsPrefs.put(hospital,hospital.getPreferences());
+            hospitalsPrefs.put(hospital,hospital.getPreferences());
         }
 
-        Map<Resident,List<String>> ResidentsPrefs = new HashMap<>();
+        Map<Resident,List<String>> residentsPrefs = new HashMap<>();
         for (Resident resident: residentTable.getAll()) {
-            ResidentsPrefs.put(resident,resident.getPreferences());
+            residentsPrefs.put(resident,resident.getPreferences());
         }
 
-        Resident currentResident = freeResidentsItir.next();
-        List<String> currentResidentPref = ResidentsPrefs.get(currentResident);
-        Iterator currentResidentPrefItir = currentResidentPref.iterator();
+        Resident currentResident = freeResidents.poll();
+        List<String> currentResidentPref = residentsPrefs.get(currentResident);
+        Iterator<String> currentResidentPrefItir = currentResidentPref.iterator();
         while (!m.hasAssignment(currentResident) &&
                 (currentResidentPref.size() > 0)) {
             Hospital hospital = hospitalTable.getHospitalById((String) currentResidentPrefItir.next());
@@ -55,28 +54,26 @@ public class HRP {
             m.assign(currentResident, hospital);
             if (m.isOverSubscribed(hospital)) {
                 Resident worstResident = hospital.getWorstResident();
-                m.unassign(worstResident, hospital);
+                m.unassign(worstResident);
             }
             if (m.isFull(hospital)) {
                 List<Resident> listOfBadResidents = hospital.getWorseThan(hospital.getWorstResident());
                 if (!listOfBadResidents.isEmpty()) {
                     Resident worseThanResident = listOfBadResidents.get(0);
-                    int indexOfFirstBadResident = HospitalsPrefs.get(hospital).indexOf(worseThanResident.toString()); // FIXME this should be an ID/hash
-                    List<String> modifiedHospitalPrefList = HospitalsPrefs.get(hospital).subList(0, indexOfFirstBadResident);
-                    HospitalsPrefs.put(hospital, modifiedHospitalPrefList);
+                    int indexOfFirstBadResident = hospitalsPrefs.get(hospital).indexOf(worseThanResident.toString()); // FIXME this should be an ID/hash
+                    List<String> modifiedHospitalPrefList = hospitalsPrefs.get(hospital).subList(0, indexOfFirstBadResident);
+                    hospitalsPrefs.put(hospital, modifiedHospitalPrefList);
 
                     for (Resident resident : listOfBadResidents) {
-                        List<String> modifiedResidentPrefList = ResidentsPrefs.get(resident);
-                        modifiedResidentPrefList.remove(modifiedResidentPrefList.indexOf(hospital));
-                        ResidentsPrefs.put(resident, modifiedResidentPrefList);
+                        residentsPrefs.get(resident).remove(residentsPrefs.get(resident).indexOf(hospital));
                     }
                 }
 
             }
 
             if (m.hasAssignment(currentResident) || currentResidentPref.size() == 0) {
-                currentResident = freeResidentsItir.next();
-                currentResidentPref = ResidentsPrefs.get(currentResident);
+                currentResident = freeResidents.poll();
+                currentResidentPref = residentsPrefs.get(currentResident);
                 currentResidentPrefItir = currentResidentPref.iterator();
             }
         }
