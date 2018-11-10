@@ -61,12 +61,16 @@ public abstract class Resident {
 
     public void setPrefsByLocation(int locationId, HospitalTable hospitalTable) {
         List<String> locationBasedHospitalPrefs = new ArrayList<>();
-        for(String hospitalId : getPreferences()) {
-            if(hospitalTable.getHospitalById(hospitalId).getLocationId() == locationId) {
+        for (String hospitalId : getPreferences()) {
+            if (hospitalTable.getHospitalById(hospitalId).getLocationId() == locationId) {
                 locationBasedHospitalPrefs.add(hospitalId);
             }
         }
         this.preferences = locationBasedHospitalPrefs;
+    }
+
+    public void setPrefsByProgress(int rankProgress) {
+        this.preferences = getInitialPreferences().subList(rankProgress, getInitialPreferences().size());
     }
 
     public void resetPreferences() {
