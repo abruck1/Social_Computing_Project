@@ -42,7 +42,7 @@ public class HRPTest {
 
     @Test
     public void twoResidentsOneSlot_hospitalShouldGetFirstChoice() {
-        Hospital h1 = Hospital.create("h1", 1, 1, ImmutableList.of("r1, r2"));
+        Hospital h1 = Hospital.create("h1", 1, 1, ImmutableList.of("r1", "r2"));
         Resident r1 = Resident.create("r1", ImmutableList.of("h1"));
         Resident r2 = Resident.create("r2", ImmutableList.of("h1"));
 

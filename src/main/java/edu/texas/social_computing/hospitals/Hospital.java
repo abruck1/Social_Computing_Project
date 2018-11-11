@@ -1,12 +1,17 @@
 package edu.texas.social_computing.hospitals;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.prefs.Preferences;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 @AutoValue
 public abstract class Hospital {
@@ -24,27 +29,19 @@ public abstract class Hospital {
                 id, locationId, capacity, ImmutableList.copyOf(preferences));
     }
 
-    /**
-     * @return rejected resident
-     */
-    public Resident rejectWorstResident() {
-        return null;
-    }
-
-    /**
-     * @return worst resident
-     */
-    public Resident getWorstResident() {
-        return null;
+    public int rankOf(Resident resident) {
+        return getPreferences().contains(resident.getId())
+                ? getPreferences().indexOf(resident.getId())
+                : Integer.MAX_VALUE;
     }
 
     /**
      * @param resident
-     * @return all residents worse than provided resident
+     * @return all residents in the preference list worse than provided resident
      */
-    public List<Resident> getWorseThan(Resident resident) {
-        return null;
+    public List<String> getWorseThanIds(Resident resident) {
+        return getPreferences().contains(resident.getId())
+                ? getPreferences().subList(rankOf(resident) + 1, getPreferences().size())
+                : ImmutableList.of();
     }
-
-
 }

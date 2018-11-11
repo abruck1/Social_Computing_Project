@@ -1,80 +1,83 @@
 package edu.texas.social_computing.hospitals;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.google.common.collect.Lists.newArrayList;
 
 public class HRP {
-    private HRP() {}
+    private HRP() {
+    }
 
     /**
      * From: The Hospitals / Residents Problem (1962; Gale, Shapley)
      * David F. Manlove
      * https://pdfs.semanticscholar.org/77d9/f84082674888ca90ca662847983381b23338.pdf?_ga=2.216999441.622816506.1541285838-70410261.1541285838
-     *
+     * <p>
      * M := ∅;
      * while (some resident r_i is unassigned and r_i has a non-empty list) {
-     *     h_j := first hospital on r_i’s list;
-     *     // r_i applies to h_j
-     *     M := M ∪ {(r_i, h_j)};
-     *     if (h_j is over-subscribed) {
-     *             r_k := worst resident in M(h_j) according to h_j’s list;
-     *             M := M\{(r_k, h_j)};
-     *     }
-     *     if (h_j is full) {
-     *             r_k := worst resident in M(h_j) according to h_j’s list;
-     *             for (each successor r_l of r_k on h_j’s list)
-     *             delete the pair (r_l, h_j);
-     *     }
+     * h_j := first hospital on r_i’s list;
+     * // r_i applies to h_j
+     * M := M ∪ {(r_i, h_j)};
+     * if (h_j is over-subscribed) {
+     * r_k := worst resident in M(h_j) according to h_j’s list;
+     * M := M\{(r_k, h_j)};
+     * }
+     * if (h_j is full) {
+     * r_k := worst resident in M(h_j) according to h_j’s list;
+     * for (each successor r_l of r_k on h_j’s list)
+     * delete the pair (r_l, h_j);
+     * }
      * }
      */
 
-    public static Matching run(@NotNull HospitalTable hospitalTable,
+    public static Matching run(HospitalTable hospitalTable,
                                ResidentTable residentTable,
-                               @NotNull Queue<Resident> freeResidents) {
+                               Queue<Resident> freeResidents) {
         Matching m = new Matching();
 
-        Map<Hospital,List<String>> hospitalsPrefs = new HashMap<>();
-        for (Hospital hospital: hospitalTable.getAll()) {
-            hospitalsPrefs.put(hospital,hospital.getPreferences());
+        Map<Hospital, List<String>> hospitalsPrefs = new HashMap<>();
+        for (Hospital hospital : hospitalTable.getAll()) {
+            hospitalsPrefs.put(hospital, newArrayList(hospital.getPreferences()));
         }
 
-        Map<Resident,List<String>> residentsPrefs = new HashMap<>();
-        for (Resident resident: residentTable.getAll()) {
-            residentsPrefs.put(resident,resident.getPreferences());
+        Map<Resident, List<String>> residentsPrefs = new HashMap<>();
+        for (Resident resident : residentTable.getAll()) {
+            residentsPrefs.put(resident, newArrayList(resident.getPreferences()));
         }
 
-        Resident currentResident = freeResidents.poll();
-        List<String> currentResidentPref = residentsPrefs.get(currentResident);
-        Iterator<String> currentResidentPrefItir = currentResidentPref.iterator();
-        while (!m.hasAssignment(currentResident) &&
-                (currentResidentPref.size() > 0)) {
-            Hospital hospital = hospitalTable.getHospitalById(currentResidentPrefItir.next());
+        while (!freeResidents.isEmpty()) {
+            Resident currentResident = freeResidents.poll();
+            if(residentsPrefs.get(currentResident).isEmpty()) {
+                continue;
+            }
+            List<String> currentResidentPref = residentsPrefs.get(currentResident);
+            Hospital hospital = hospitalTable.getHospitalById(currentResidentPref.get(0));
 
             m.assign(currentResident, hospital);
             if (m.isOverSubscribed(hospital)) {
-                Resident worstResident = hospital.getWorstResident();
+                Resident worstResident = m.getWorstAssignedResident(hospital);
                 m.unassign(worstResident);
+                if(!residentsPrefs.get(worstResident).isEmpty()) {
+                    freeResidents.add(worstResident);
+                }
             }
             if (m.isFull(hospital)) {
-                List<Resident> listOfBadResidents = hospital.getWorseThan(hospital.getWorstResident());
-                if (!listOfBadResidents.isEmpty()) {
-                    Resident worseThanResident = listOfBadResidents.get(0);
-                    int indexOfFirstBadResident = hospitalsPrefs.get(hospital).indexOf(worseThanResident.toString()); // FIXME this should be an ID/hash
-                    List<String> modifiedHospitalPrefList = hospitalsPrefs.get(hospital).subList(0, indexOfFirstBadResident);
-                    hospitalsPrefs.put(hospital, modifiedHospitalPrefList);
+                List<String> badResidentIds = hospital.getWorseThanIds(m.getWorstAssignedResident(hospital));
+                if (!badResidentIds.isEmpty()) {
+                    hospitalsPrefs.get(hospital).removeAll(badResidentIds);
 
-                    for (Resident resident : listOfBadResidents) {
-                        residentsPrefs.get(resident).remove(residentsPrefs.get(resident).indexOf(hospital));
+                    for (String badId : badResidentIds) {
+                        Resident badResident = residentTable.getResidentById(badId);
+                        residentsPrefs.get(badResident).remove(hospital.getId());
                     }
                 }
 
             }
 
-            if (m.hasAssignment(currentResident) || currentResidentPref.size() == 0) {
-                currentResident = freeResidents.poll();
-                currentResidentPref = residentsPrefs.get(currentResident);
-                currentResidentPrefItir = currentResidentPref.iterator();
+            // if currentResident has more applying to do, put back in Q
+            if (!m.hasAssignment(currentResident)) {
+                freeResidents.add(currentResident);
             }
         }
         return m;
