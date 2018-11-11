@@ -23,14 +23,16 @@ public abstract class Resident {
      * Creates a {@link Resident} with a partner.
      */
     static Resident create(String id, String partnerId, Iterable<String> initialPreferences) {
-        return new AutoValue_Resident(id, partnerId, ImmutableList.copyOf(initialPreferences));
+        Resident r = new AutoValue_Resident(id, partnerId, ImmutableList.copyOf(initialPreferences));
+        r.resetPreferences();
+        return r;
     }
 
     /**
      * Creates a {@link Resident} with no partner.
      */
     static Resident create(String id, Iterable<String> initialPreferences) {
-        return new AutoValue_Resident(id, NO_PARTNER, ImmutableList.copyOf(initialPreferences));
+        return create(id, NO_PARTNER, initialPreferences);
     }
 
     /**
