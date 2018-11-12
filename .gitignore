@@ -1,2 +1,8 @@
 .idea/*
 src/main/main.iml
+gradlew
+gradlew.bat
+*.iml
+.gradle
+gradle/
+build/

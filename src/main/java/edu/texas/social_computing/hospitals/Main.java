@@ -1,15 +1,15 @@
 package edu.texas.social_computing.hospitals;
 
 
-import java.util.ArrayList;
+import java.io.FileNotFoundException;
 import java.util.List;
 
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException {
         // load lists of hospital and residents from file
-        List<Resident> residents = new ArrayList<>();
-        List<Hospital> hospitals = new ArrayList<>();
+        List<Resident> residents = FileImporter.importResidents(args[0]);
+        List<Hospital> hospitals = FileImporter.importHospitals(args[1]);
 
         // make lookup tables
         HospitalTable hospitalTable = HospitalTable.create(hospitals);
