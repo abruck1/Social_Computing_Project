@@ -44,6 +44,12 @@ public class Matching {
         return getAssignedResidents(h).size() == h.getCapacity();
     }
 
+    public Resident getWorstAssignedResident(Hospital h) {
+        return hospitalAssignments.get(h).stream()
+                .max(Comparator.comparing(h::rankOf))
+                .orElse(null);
+    }
+
     public Set<Resident> getAllUnassigned(List<Resident> residents) {
         Set<Resident> unassignedResidents = new HashSet<>();
         for(Resident resident : residents) {
