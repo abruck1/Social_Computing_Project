@@ -1,7 +1,11 @@
 package edu.texas.social_computing.hospitals;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+
+import java.io.FileNotFoundException;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.collect.Lists.newArrayList;
 
@@ -48,7 +52,7 @@ public class HRP {
 
         while (!freeResidents.isEmpty()) {
             Resident currentResident = freeResidents.poll();
-            if(residentsPrefs.get(currentResident).isEmpty()) {
+            if (residentsPrefs.get(currentResident).isEmpty()) {
                 continue;
             }
             List<String> currentResidentPref = residentsPrefs.get(currentResident);
@@ -58,21 +62,20 @@ public class HRP {
             if (m.isOverSubscribed(hospital)) {
                 Resident worstResident = m.getWorstAssignedResident(hospital);
                 m.unassign(worstResident);
-                if(!residentsPrefs.get(worstResident).isEmpty()) {
+                if (!residentsPrefs.get(worstResident).isEmpty()) {
                     freeResidents.add(worstResident);
                 }
             }
             if (m.isFull(hospital)) {
                 List<String> badResidentIds = hospital.getWorseThanIds(m.getWorstAssignedResident(hospital));
-                if (!badResidentIds.isEmpty()) {
-                    hospitalsPrefs.get(hospital).removeAll(badResidentIds);
+                List<String> nonRankedResidentIds = getNonRankedIds(hospital, residentTable.getAll());
 
-                    for (String badId : badResidentIds) {
-                        Resident badResident = residentTable.getResidentById(badId);
-                        residentsPrefs.get(badResident).remove(hospital.getId());
-                    }
-                }
-
+                Stream.of(badResidentIds, nonRankedResidentIds).flatMap(Collection::stream)
+                        .forEach(resId -> {
+                            hospitalsPrefs.remove(resId);
+                            Resident badResident = residentTable.getResidentById(resId);
+                            residentsPrefs.get(badResident).remove(hospital.getId());
+                        });
             }
 
             // if currentResident has more applying to do, put back in Q
@@ -81,5 +84,35 @@ public class HRP {
             }
         }
         return m;
+    }
+
+    public static void main(String[] args) throws FileNotFoundException {
+        List<Resident> residents = FileImporter.importResidents(args[0]);
+        List<Hospital> hospitals = FileImporter.importHospitals(args[1]);
+        System.out.println("loaded Files");
+        System.out.println("residents: " + Integer.toString(residents.size()));
+        System.out.println("hospitals: " + Integer.toString(hospitals.size()));
+
+        // make lookup tables
+        HospitalTable hospitalTable = HospitalTable.create(hospitals);
+        ResidentTable residentTable = ResidentTable.create(residents);
+        System.out.println("generated tables");
+
+        // call HRP
+        Matching m = HRP.run(hospitalTable, residentTable, new ArrayDeque<>(residentTable.getAll()));
+        System.out.println(m);
+
+
+        Set<String> unassignedIds = m.getAllUnassigned(residentTable.getAll()).stream()
+                .map(Resident::getId)
+                .collect(ImmutableSet.toImmutableSet());
+        System.out.println("Unassigned: " + unassignedIds);
+    }
+
+    private static List<String> getNonRankedIds(Hospital h, List<Resident> residents) {
+        return residents.stream()
+                .filter(res -> h.rankOf(res) == Integer.MAX_VALUE)
+                .map(Resident::getId)
+                .collect(ImmutableList.toImmutableList());
     }
 }

@@ -23,3 +23,17 @@ test {
         logger.quiet "Executing test ${desc.name} [${desc.className}] with result: ${result.resultType}"
     }
 }
+
+task runHRP(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+
+    main = 'edu.texas.social_computing.hospitals.HRP'
+
+    if (project.hasProperty("residentsFile")) {
+        args(residentsFile)
+    }
+
+    if (project.hasProperty("hospitalsFile")) {
+        args(hospitalsFile)
+    }
+}

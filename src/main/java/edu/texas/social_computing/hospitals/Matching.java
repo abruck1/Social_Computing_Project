@@ -2,6 +2,7 @@ package edu.texas.social_computing.hospitals;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 
 import java.util.*;
@@ -51,28 +52,23 @@ public class Matching {
     }
 
     public Set<Resident> getAllUnassigned(List<Resident> residents) {
-        Set<Resident> unassignedResidents = new HashSet<>();
-        for(Resident resident : residents) {
-            if(!hasAssignment(resident)) {
-                unassignedResidents.add(resident);
-            }
-        }
-        return unassignedResidents;
+        return residents.stream()
+                .filter(res -> !hasAssignment(res))
+                .collect(ImmutableSet.toImmutableSet());
     }
 
     /**
-     *
      * @param residents : a list of Non-Dominant (ND) residents in a matching that needs to be checked to see
-     *                 if any of the residents in the list violate a proximity constraint
+     *                  if any of the residents in the list violate a proximity constraint
      * @return a set of residents that violate the proximity constraint AND are the worse placed partner
      */
     public Set<Resident> getNDProximityViolators(List<Resident> residents, ResidentTable residentTable) {
         Set<Resident> freeViolatingResidents = new HashSet<>();
-        for(Resident resident : residents) {
-            if(!resident.hasPartner()) continue;
+        for (Resident resident : residents) {
+            if (!resident.hasPartner()) continue;
             Resident partner = residentTable.getResidentById(resident.getPartnerId());
-            if(!hasAssignment(resident)) continue;
-            if(!hasAssignment(partner)) {
+            if (!hasAssignment(resident)) continue;
+            if (!hasAssignment(partner)) {
                 freeViolatingResidents.add(partner);
                 continue;
             }
@@ -80,9 +76,9 @@ public class Matching {
             Hospital partnerAssignedHospital = this.getAssignedHospital(partner);
             int location = assignedHospital.getLocationId();
             int partnerLocation = partnerAssignedHospital.getLocationId();
-            if(location != partnerLocation) {
+            if (location != partnerLocation) {
                 // if there is a tie for worse placed partner we only want 1 to be non-dominant
-                if(!freeViolatingResidents.contains(partner)) {
+                if (!freeViolatingResidents.contains(partner)) {
                     Resident ndPartner = MatchingUtils.worsePlacedResident(this, resident, partner);
                     freeViolatingResidents.add(ndPartner);
                     unassign(ndPartner);
@@ -92,4 +88,17 @@ public class Matching {
         return freeViolatingResidents;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for (Hospital h : hospitalAssignments.keySet()) {
+            sb.append(h.getId());
+            sb.append(" : ");
+            sb.append(hospitalAssignments.get(h).stream()
+                    .map(Resident::getId)
+                    .collect(ImmutableList.toImmutableList()));
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
 }
