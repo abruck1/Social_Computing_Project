@@ -23,3 +23,7 @@ test {
         logger.quiet "Executing test ${desc.name} [${desc.className}] with result: ${result.resultType}"
     }
 }
+
+apply plugin: 'application'
+
+mainClassName = "edu.texas.social_computing.hospitals.Main"
