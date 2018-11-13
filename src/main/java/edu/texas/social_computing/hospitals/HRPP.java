@@ -4,7 +4,7 @@ import java.util.*;
 
 public class HRPP {
 
-    public static void run(HospitalTable hospitalTable, ResidentTable residentTable) {
+    public static Matching run(HospitalTable hospitalTable, ResidentTable residentTable) {
         // run hospital-resident matching alg (couple agnostic)
         Deque<Resident> initialQueue = new ArrayDeque<>(residentTable.getAll());
         Matching matching = HRP.run(hospitalTable, residentTable, initialQueue);
@@ -26,7 +26,7 @@ public class HRPP {
             // put back in the queue
             unmatchedQueue.addFirst(ndResident);
             // try to match that person
-            matching = HRP.run(hospitalTable, residentTable, unmatchedQueue);
+            matching = HRP.run(hospitalTable, residentTable, unmatchedQueue, matching);
             // if matched -> good
             if (matching.hasAssignment(ndResident)) {
                 continue;
@@ -49,11 +49,13 @@ public class HRPP {
             partner.setPrefsByProgress(residentTable.getResidentRankProgress(partner));
 
             // run again
-            matching = HRP.run(hospitalTable, residentTable, unmatchedQueue);
+            matching = HRP.run(hospitalTable, residentTable, unmatchedQueue, matching);
 
             // check for proximity violations again ... could be some new ones
             violatingResidentsQ = computeViolatingResidentQ(matching, residentTable);
         }
+
+        return matching;
     }
 
     private static Deque<Resident> computeViolatingResidentQ(Matching matching, ResidentTable residentTable) {

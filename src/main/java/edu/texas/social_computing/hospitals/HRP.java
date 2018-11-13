@@ -37,8 +37,9 @@ public class HRP {
 
     public static Matching run(HospitalTable hospitalTable,
                                ResidentTable residentTable,
-                               Queue<Resident> freeResidents) {
-        Matching m = new Matching();
+                               Queue<Resident> freeResidents,
+                               Matching existingMatching) {
+        Matching m = existingMatching;
 
         Map<Hospital, List<String>> hospitalsPrefs = new HashMap<>();
         for (Hospital hospital : hospitalTable.getAll()) {
@@ -84,6 +85,12 @@ public class HRP {
             }
         }
         return m;
+    }
+
+    public static Matching run(HospitalTable hospitalTable,
+                               ResidentTable residentTable,
+                               Queue<Resident> freeResidents) {
+        return run(hospitalTable, residentTable, freeResidents, new Matching());
     }
 
     public static void main(String[] args) throws FileNotFoundException {
