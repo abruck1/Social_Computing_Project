@@ -11,19 +11,14 @@ class FileImporter {
     private static Scanner getScanner(String path) throws FileNotFoundException {
         File file = new File(path);
         Scanner sc;
-        try {
             sc = new Scanner(file);
-        } catch (FileNotFoundException e) {
-            System.out.println("couldn't find file" + e);
-            throw e;
-        }
         return sc;
     }
 
     static List<Hospital> importHospitals(String path) throws FileNotFoundException {
         Scanner sc = getScanner(path);
 
-        List<Hospital> results = new ArrayList<>();
+        List<Hospital> hospitals = new ArrayList<>();
 
         while (sc.hasNextLine()) {
             String line = sc.nextLine();
@@ -35,16 +30,16 @@ class FileImporter {
             List<String> preferences = Arrays.asList(concatPrefs.split(" "));
 
             Hospital hospital = Hospital.create(id, locationid, capacity, preferences);
-            results.add(hospital);
+            hospitals.add(hospital);
         }
 
-        return results;
+        return hospitals;
     }
 
     static List<Resident> importResidents(String path) throws FileNotFoundException {
         Scanner sc = getScanner(path);
 
-        List<Resident> results = new ArrayList<>();
+        List<Resident> residents = new ArrayList<>();
 
         while (sc.hasNextLine()) {
             String line = sc.nextLine();
@@ -61,10 +56,10 @@ class FileImporter {
                 resident = Resident.create(id, partnerId, preferences);
             }
 
-            results.add(resident);
+            residents.add(resident);
         }
 
-        return results;
+        return residents;
 
     }
 }
