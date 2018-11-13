@@ -1,5 +1,6 @@
 package edu.texas.social_computing.hospitals;
 
+import java.io.FileNotFoundException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -48,7 +49,7 @@ public class HRP {
 
         while (!freeResidents.isEmpty()) {
             Resident currentResident = freeResidents.poll();
-            if(residentsPrefs.get(currentResident).isEmpty()) {
+            if (residentsPrefs.get(currentResident).isEmpty()) {
                 continue;
             }
             List<String> currentResidentPref = residentsPrefs.get(currentResident);
@@ -58,7 +59,7 @@ public class HRP {
             if (m.isOverSubscribed(hospital)) {
                 Resident worstResident = m.getWorstAssignedResident(hospital);
                 m.unassign(worstResident);
-                if(!residentsPrefs.get(worstResident).isEmpty()) {
+                if (!residentsPrefs.get(worstResident).isEmpty()) {
                     freeResidents.add(worstResident);
                 }
             }
@@ -72,7 +73,6 @@ public class HRP {
                         residentsPrefs.get(badResident).remove(hospital.getId());
                     }
                 }
-
             }
 
             // if currentResident has more applying to do, put back in Q
@@ -81,5 +81,22 @@ public class HRP {
             }
         }
         return m;
+    }
+
+    public static void main(String[] args) throws FileNotFoundException {
+        List<Resident> residents = FileImporter.importResidents(args[0]);
+        List<Hospital> hospitals = FileImporter.importHospitals(args[1]);
+        System.out.println("loaded Files");
+        System.out.println("residents: " + Integer.toString(residents.size()));
+        System.out.println("hospitals: " + Integer.toString(hospitals.size()));
+
+        // make lookup tables
+        HospitalTable hospitalTable = HospitalTable.create(hospitals);
+        ResidentTable residentTable = ResidentTable.create(residents);
+        System.out.println("generated tables");
+
+        // call HRP
+        HRP.run(hospitalTable, residentTable, new ArrayDeque<>(residentTable.getAll()));
+        System.out.println("Done");
     }
 }
