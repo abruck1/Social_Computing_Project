@@ -31,8 +31,13 @@ public class HRPP {
 
             // try to match that person
             HRP.run(hospitalTable, residentTable, unmatchedQueue, matching);
+
+            // reset non-dominant partner's preference list
+            ndResident.setPrefsByProgress(residentTable.getResidentRankProgress(ndResident));
+
             // if matched -> good
             if (matching.hasAssignment(ndResident)) {
+                updateViolatingResidentQ(matching, residentTable, violatingResidentsQ);
                 continue;
             }
 
@@ -46,9 +51,6 @@ public class HRPP {
             unmatchedQueue.add(ndResident);
             unmatchedQueue.add(partner);
 
-            // reset non-dominant partner's preference list
-            ndResident.setPrefsByProgress(residentTable.getResidentRankProgress(ndResident));
-
             // start from dominant partner's next hospital preference (changing the rank pointer)
             residentTable.incrementResidentRankProgress(partner);
             partner.setPrefsByProgress(residentTable.getResidentRankProgress(partner));
@@ -57,27 +59,25 @@ public class HRPP {
             HRP.run(hospitalTable, residentTable, unmatchedQueue, matching);
 
             // check for proximity violations again ... could be some new ones
-            Set<Resident> newViolators = new HashSet<>(computeViolatingResidentQ(matching, residentTable));
-            Set<Resident> oldViolators = new HashSet<>(violatingResidentsQ);
-            violatingResidentsQ.addAll(Sets.difference(newViolators, oldViolators));
+            updateViolatingResidentQ(matching, residentTable, violatingResidentsQ);
 
             // make sure all unassigned residents (for whatever reason) are added back into the queue for consideration
             unmatchedQueue.addAll(matching.getAllUnassigned(residentTable.getAll()));
 
             Optional<Integer> totalRank = residentTable.getAll().stream()
                     .map(residentTable::getResidentRankProgress)
-                    .reduce((rank1, rank2) -> rank1+rank2);
+                    .reduce((rank1, rank2) -> rank1 + rank2);
 
             Optional<Integer> maxtotalRank = residentTable.getAll().stream()
                     .map(res -> res.getInitialPreferences().size())
-                    .reduce((size1, size2) -> size1+size2);
-            totalRank.toString();
+                    .reduce((size1, size2) -> size1 + size2);
 
-            if(totalRank.get()%10==0) {
-                System.out.println(totalRank + "/" + maxtotalRank);
+            if (totalRank.get() % 10 == 0) {
+                System.out.println(totalRank.get() + "/" + maxtotalRank.get());
             }
-
         }
+
+        System.out.println("Size of violating Q: " + violatingResidentsQ.size());
 
         return matching;
     }
@@ -85,6 +85,12 @@ public class HRPP {
     private static Deque<Resident> computeViolatingResidentQ(Matching matching, ResidentTable residentTable) {
         Set<Resident> freeViolatingResidents = matching.getNDProximityViolators(residentTable.getAll(), residentTable);
         return new ArrayDeque<>(freeViolatingResidents);
+    }
 
+    private static void updateViolatingResidentQ(
+            Matching matching, ResidentTable residentTable, Deque<Resident> violatingResidentsQ) {
+        Set<Resident> newViolators = new HashSet<>(computeViolatingResidentQ(matching, residentTable));
+        Set<Resident> oldViolators = new HashSet<>(violatingResidentsQ);
+        violatingResidentsQ.addAll(Sets.difference(newViolators, oldViolators));
     }
 }
