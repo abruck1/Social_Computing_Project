@@ -68,15 +68,15 @@ public class HRPP {
                     .map(residentTable::getResidentRankProgress)
                     .reduce((rank1, rank2) -> rank1+rank2);
 
-            if(totalRank.get()%10==0) {
-                System.out.println(totalRank);
-            }
-
-
             Optional<Integer> maxtotalRank = residentTable.getAll().stream()
                     .map(res -> res.getInitialPreferences().size())
                     .reduce((size1, size2) -> size1+size2);
             totalRank.toString();
+
+            if(totalRank.get()%10==0) {
+                System.out.println(totalRank + "/" + maxtotalRank);
+            }
+
         }
 
         return matching;
