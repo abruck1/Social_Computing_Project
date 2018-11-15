@@ -38,7 +38,7 @@ public class RHRP {
                     continue;
                 }
                 // resident and partner have to have the same pref list size
-                assert (false);
+                throw new IllegalArgumentException(String.format("Partners [%s] and [%s] must have the same length preference list.", currentResident.getId(), currentResident.getPartnerId()));
             }
 
             Hospital hospital = hospitalTable.getHospitalById(currentResident.getPreferences()
