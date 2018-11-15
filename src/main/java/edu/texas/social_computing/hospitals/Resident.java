@@ -2,6 +2,7 @@ package edu.texas.social_computing.hospitals;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -72,7 +73,11 @@ public abstract class Resident {
     }
 
     public void setPrefsByProgress(int rankProgress) {
-        this.preferences = getInitialPreferences().subList(rankProgress, getInitialPreferences().size());
+        if (rankProgress < getInitialPreferences().size()) {
+            this.preferences = getInitialPreferences().subList(rankProgress, getInitialPreferences().size());
+        } else {
+            this.preferences = ImmutableList.of();
+        }
     }
 
     public void resetPreferences() {

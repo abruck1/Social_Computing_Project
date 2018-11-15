@@ -1,5 +1,7 @@
 package edu.texas.social_computing.hospitals;
 
+import com.google.common.collect.Sets;
+
 import java.util.*;
 
 public class HRPP {
@@ -7,7 +9,7 @@ public class HRPP {
     public static Matching run(HospitalTable hospitalTable, ResidentTable residentTable) {
         // run hospital-resident matching alg (couple agnostic)
         Deque<Resident> initialQueue = new ArrayDeque<>(residentTable.getAll());
-        Matching matching = HRP.run(hospitalTable, residentTable, initialQueue);
+        final Matching matching = HRP.run(hospitalTable, residentTable, initialQueue);
 
         // check all couples for proximity violations (location mismatch)
         Deque<Resident> unmatchedQueue = new ArrayDeque<>(matching.getAllUnassigned(residentTable.getAll()));
@@ -24,9 +26,11 @@ public class HRPP {
             ndResident.setPrefsByLocation(matching.getAssignedHospital(partner).getLocationId(), hospitalTable);
 
             // put back in the queue
+            matching.unassign(ndResident);
             unmatchedQueue.addFirst(ndResident);
+
             // try to match that person
-            matching = HRP.run(hospitalTable, residentTable, unmatchedQueue, matching);
+            HRP.run(hospitalTable, residentTable, unmatchedQueue, matching);
             // if matched -> good
             if (matching.hasAssignment(ndResident)) {
                 continue;
@@ -38,21 +42,41 @@ public class HRPP {
             matching.unassign(ndResident);
             matching.unassign(partner);
 
-            // ndResident should still be in queue, right???
+            // add both partners back to queue
+            unmatchedQueue.add(ndResident);
             unmatchedQueue.add(partner);
 
             // reset non-dominant partner's preference list
-            ndResident.resetPreferences();
+            ndResident.setPrefsByProgress(residentTable.getResidentRankProgress(ndResident));
 
             // start from dominant partner's next hospital preference (changing the rank pointer)
             residentTable.incrementResidentRankProgress(partner);
             partner.setPrefsByProgress(residentTable.getResidentRankProgress(partner));
 
             // run again
-            matching = HRP.run(hospitalTable, residentTable, unmatchedQueue, matching);
+            HRP.run(hospitalTable, residentTable, unmatchedQueue, matching);
 
             // check for proximity violations again ... could be some new ones
-            violatingResidentsQ = computeViolatingResidentQ(matching, residentTable);
+            Set<Resident> newViolators = new HashSet<>(computeViolatingResidentQ(matching, residentTable));
+            Set<Resident> oldViolators = new HashSet<>(violatingResidentsQ);
+            violatingResidentsQ.addAll(Sets.difference(newViolators, oldViolators));
+
+            // make sure all unassigned residents (for whatever reason) are added back into the queue for consideration
+            unmatchedQueue.addAll(matching.getAllUnassigned(residentTable.getAll()));
+
+            Optional<Integer> totalRank = residentTable.getAll().stream()
+                    .map(residentTable::getResidentRankProgress)
+                    .reduce((rank1, rank2) -> rank1+rank2);
+
+            if(totalRank.get()%10==0) {
+                System.out.println(totalRank);
+            }
+
+
+            Optional<Integer> maxtotalRank = residentTable.getAll().stream()
+                    .map(res -> res.getInitialPreferences().size())
+                    .reduce((size1, size2) -> size1+size2);
+            totalRank.toString();
         }
 
         return matching;

@@ -63,7 +63,7 @@ public class HRP {
             if (m.isOverSubscribed(hospital)) {
                 Resident worstResident = m.getWorstAssignedResident(hospital);
                 m.unassign(worstResident);
-                if (!residentsPrefs.get(worstResident).isEmpty()) {
+                if (!residentsPrefs.get(worstResident).isEmpty() && !worstResident.equals(currentResident)) {
                     freeResidents.add(worstResident);
                 }
             }
