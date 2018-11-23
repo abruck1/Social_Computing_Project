@@ -5,6 +5,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class Matching {
@@ -164,6 +169,108 @@ public class Matching {
             for (String v : violations) {
                 System.out.println(v);
             }
+        }
+    }
+
+    private String getPrefString(List<String> preferences) {
+        StringBuilder prefString = new StringBuilder();
+        for (String p: preferences) {
+            prefString.append(p).append(" ");
+        }
+        return prefString.toString().trim();
+    }
+
+    public void outputMatchingToCsv(String filePrefix, List<Resident> residents, ResidentTable residentTable, List<Hospital> hospitals) {
+        List<String> resCSV = new ArrayList<>();
+        List<String> hospCSV = new ArrayList<>();
+        Charset utf8 = StandardCharsets.UTF_8;
+        // add headers
+        List<String> resHeaders = new ArrayList<>(Arrays.asList(
+                "residentId",
+                "residentAssignment",
+                "residentAssignmentLocation",
+                "residentAssignmentRank",
+                "residentInitialPreferences",
+                "residentFinalPreferences",
+                "hasPartner",
+                "isAnchorPartner",
+                "partnerId",
+                "partnerAssignment",
+                "partnerAssignmentLocation",
+                "partnerAssignmentRank",
+                "partnerInitialPreferences",
+                "partnerFinalPreferences"
+        ));
+        resCSV.add(String.join(", ", resHeaders));
+        List<String> hospHeaders = new ArrayList<>(Arrays.asList(
+                "hospitalId",
+                "hospitalLocation",
+                "capacity",
+                "assignmentCount",
+                "preferences",
+                "assignments",
+                "assignmentRanks"
+        ));
+        hospCSV.add(String.join(", ", hospHeaders));
+        // get all Residents
+        for (Resident resident : residents) {
+            List<String> resInitPrefs = resident.getInitialPreferences();
+            List<String> resPrefs = resident.getPreferences();
+            Hospital residentAssignment = getAssignedHospital(resident);
+            String partnerId = resident.getPartnerId();
+            Resident partner = residentTable.getResidentById(partnerId);
+            Hospital partnerAssignment = getAssignedHospital(partner);
+            String hasPartner = resident.hasPartner() ? "true" : "false";
+            String isAnchorPartner = hasPartner.equals("true") ? ((resInitPrefs.equals(resPrefs)) ? "true" : "false") : "NA";
+
+            // build output
+            List<String> resRow = new ArrayList<>(Arrays.asList(
+                    resident.getId(),
+                    residentAssignment.getId(),
+                    Integer.toString(residentAssignment.getLocationId()),
+                    Integer.toString(resident.rankOf(residentAssignment)),
+                    getPrefString(resInitPrefs),
+                    getPrefString(resPrefs),
+                    hasPartner,
+                    isAnchorPartner,
+                    (hasPartner.equals("true") ? partnerId : "NA"),
+                    (hasPartner.equals("true") ? partnerAssignment.getId() : "NA"),
+                    (hasPartner.equals("true") ? Integer.toString(partnerAssignment.getLocationId()) : "NA"),
+                    (hasPartner.equals("true") ? Integer.toString(partner.rankOf(partnerAssignment)) : "NA"),
+                    (hasPartner.equals("true") ? getPrefString(partner.getInitialPreferences()) : "NA"),
+                    (hasPartner.equals("true") ? getPrefString(partner.getPreferences()) : "NA")
+            ));
+            resCSV.add(String.join(", ", resRow));
+        }
+
+        for (Hospital hospital : hospitals) {
+            List<String> hosPrefs = hospital.getPreferences();
+            List<Resident> assignments = getAssignedResidents(hospital);
+            List<String> assignmentIds = new ArrayList<>();
+            List<String> assignmentRanks = new ArrayList<>();
+            for (Resident res : assignments) {
+                String resId = res.getId();
+                assignmentIds.add(resId);
+                assignmentRanks.add(Integer.toString(hosPrefs.indexOf(resId)));
+            }
+            // build output
+            List<String> hosRow = new ArrayList<>(Arrays.asList(
+                    hospital.getId(),
+                    Integer.toString(hospital.getLocationId()),
+                    Integer.toString(hospital.getCapacity()),
+                    Integer.toString(assignments.size()),
+                    getPrefString(hosPrefs),
+                    getPrefString(assignmentIds),
+                    getPrefString(assignmentRanks)
+            ));
+            hospCSV.add(String.join(", ", hosRow));
+        }
+
+        try {
+            Files.write(Paths.get("matching_output/" + filePrefix + "_hospitals.csv"), hospCSV, utf8);
+            Files.write(Paths.get("matching_output/" + filePrefix + "_residents.csv"), resCSV, utf8);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

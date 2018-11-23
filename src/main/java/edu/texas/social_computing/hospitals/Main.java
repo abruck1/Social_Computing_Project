@@ -24,6 +24,8 @@ public class Main {
         finalMatch.validateProximities(residents, residentTable);
         finalMatch.validateCapacities(hospitals);
         finalMatch.validateStability(residents, hospitalTable);
+
+        finalMatch.outputMatchingToCsv("testRun2", residents, residentTable, hospitals);
         System.out.println("Done");
 
     }
