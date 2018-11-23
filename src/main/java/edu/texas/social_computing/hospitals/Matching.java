@@ -113,8 +113,7 @@ public class Matching {
     public void validateCapacities(List<Hospital> hospitals) {
         List<String> violations = new ArrayList<>();
         for (Hospital hospital : hospitals) {
-            List<Resident> assignments = getAssignedResidents(hospital);
-            Integer assignmentSize = assignments.size();
+            Integer assignmentSize = getAssignedResidents(hospital).size();
             Integer capacity = hospital.getCapacity();
             if (assignmentSize > capacity) {
                 violations.add(hospital.getId() + " exceeds capacity: " + assignmentSize + " > " + capacity);
@@ -132,19 +131,15 @@ public class Matching {
     private boolean isRankedHigherThanWorstMatch(Hospital hospital, String residentId) {
         Resident worstMatch = getWorstAssignedResident(hospital);
         List<String> hosPrefs = hospital.getPreferences();
-        if (hosPrefs.indexOf(residentId) == -1) {
+        if (!hosPrefs.contains(residentId)) {
             return false;
         }
         if (worstMatch == null) {
             return true;
         }
-        String worstResId = worstMatch.getId();
         int hosResPrefIndex = hosPrefs.indexOf(residentId);
-        int hosWorstPrefIndex = hosPrefs.indexOf(worstResId);
-        if (hosResPrefIndex < hosWorstPrefIndex) {
-            return true;
-        }
-        return false;
+        int hosWorstPrefIndex = hosPrefs.indexOf(worstMatch.getId());
+        return hosResPrefIndex < hosWorstPrefIndex;
     }
 
     public void validateStability(List<Resident> residents, HospitalTable hospitalTable) {
@@ -152,26 +147,15 @@ public class Matching {
         for (Resident resident : residents) {
             String resId = resident.getId();
             List<String> resPrefs = resident.getPreferences();
-            Hospital residentAssignment;
-            if (hasAssignment(resident)) {
-                residentAssignment = getAssignedHospital(resident);
-                int resPrefIndex = resPrefs.indexOf(residentAssignment.getId());
-                if (resPrefIndex > 0) {
-                    for (int i = 0; i < resPrefIndex; i++) {
-                        Hospital h = hospitalTable.getHospitalById(resPrefs.get(i));
-                        if (isRankedHigherThanWorstMatch(h, resId)) {
-                            violations.add("(" + resId + ", " + h.getId() + ") is a blocking pair" );
-                        }
-                    }
-                }
-            } else {
-                for (int i = 0; i < resPrefs.size(); i++) {
+            Hospital residentAssignment = getAssignedHospital(resident);
+            int resPrefIndex = hasAssignment(resident) ? resPrefs.indexOf(residentAssignment.getId()) : resPrefs.size();
+            if (resPrefIndex > 0) {
+                for (int i = 0; i < resPrefIndex; i++) {
                     Hospital h = hospitalTable.getHospitalById(resPrefs.get(i));
                     if (isRankedHigherThanWorstMatch(h, resId)) {
-                        violations.add("(" + resId + ", " + h.getId() + ") is a blocking pair" );
+                        violations.add("(" + resId + ", " + h.getId() + ") is a blocking pair");
                     }
                 }
-
             }
         }
         if (violations.size() == 0) {
