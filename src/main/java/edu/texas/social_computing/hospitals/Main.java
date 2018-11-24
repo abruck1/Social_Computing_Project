@@ -7,8 +7,8 @@ public class Main {
 
     public static void main(String[] args) throws FileNotFoundException {
 
-        //String resFile = "./resources/test_hos5_loc2_res16_coup3_residents.csv";
-        //String hosFile = "./resources/test_hos5_loc2_res16_coup3_hospitals.csv";
+        String resFile = "./resources/test_hos5_loc2_res16_coup3_residents.csv";
+        String hosFile = "./resources/test_hos5_loc2_res16_coup3_hospitals.csv";
 
         //String resFile = "./resources/test_hos50_loc50_res100_coup50_residents.csv";
         //String hosFile = "./resources/test_hos50_loc50_res100_coup50_hospitals.csv";
@@ -19,8 +19,8 @@ public class Main {
         //String resFile = "./resources/test_hos100_loc10_res200_coup50_residents.csv";
         //String hosFile = "./resources/test_hos100_loc10_res200_coup50_hospitals.csv";
 
-        String resFile = "./resources/test_hos300_loc50_res500_coup100_residents.csv";
-        String hosFile = "./resources/test_hos300_loc50_res500_coup100_hospitals.csv";
+        //String resFile = "./resources/test_hos300_loc50_res500_coup100_residents.csv";
+        //String hosFile = "./resources/test_hos300_loc50_res500_coup100_hospitals.csv";
 
         // load lists of hospital and residents from file
         List<Resident> residents = FileImporter.importResidents(resFile);
@@ -43,6 +43,7 @@ public class Main {
         System.out.println(finalMatch);
         finalMatch.validateProximities(residents, residentTable);
         finalMatch.validateCapacities(hospitals);
+        finalMatch.validateStability(residentTable, hospitalTable);
         finalMatch.outputMatchingToCsv("testFix", residents, residentTable, hospitals);
         finalMatch.outputMatchingToCsv("test_export", residents, residentTable, hospitals);
         System.out.println("Done");
