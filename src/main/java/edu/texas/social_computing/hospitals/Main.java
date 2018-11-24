@@ -25,7 +25,7 @@ public class Main {
         finalMatch.validateCapacities(hospitals);
         finalMatch.validateStability(residents, hospitalTable, residentTable);
 
-        finalMatch.outputMatchingToCsv("testFix", residents, residentTable, hospitals);
+        finalMatch.outputMatchingToCsv("test_export", residents, residentTable, hospitals);
         System.out.println("Done");
 
     }
