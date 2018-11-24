@@ -1,6 +1,7 @@
 package edu.texas.social_computing.hospitals;
 
 import com.google.common.collect.Sets;
+import static com.google.common.base.Preconditions.checkState;
 
 import java.util.*;
 
@@ -44,6 +45,8 @@ public class HRPP {
                 continue;
             }
 
+            giveSinglesAnotherChance(matching, residentTable, hospitalTable, unmatchedQueue);
+
             // Task 2
             // if partners still not proximally matched
             // unmatch BOTH in the couple and add both back to the queue (now no one is dominant)
@@ -69,7 +72,6 @@ public class HRPP {
 
             // give the singles another chance
             giveSinglesAnotherChance(matching, residentTable, hospitalTable, unmatchedQueue);
-
             printProgress(residentTable);
         }
 

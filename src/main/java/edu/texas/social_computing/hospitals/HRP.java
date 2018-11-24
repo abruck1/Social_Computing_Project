@@ -58,8 +58,10 @@ public class HRP {
             }
             List<String> currentResidentPref = residentsPrefs.get(currentResident);
             Hospital hospital = hospitalTable.getHospitalById(currentResidentPref.get(0));
+            residentsPrefs.get(currentResident).remove(hospital.getId());
 
             m.assign(currentResident, hospital);
+
             if (m.isOverSubscribed(hospital)) {
                 Resident worstResident = m.getWorstAssignedResident(hospital);
                 m.unassign(worstResident, hospital);
@@ -77,8 +79,8 @@ public class HRP {
                             Resident badResident = residentTable.getResidentById(resId);
                             residentsPrefs.get(badResident).remove(hospital.getId());
                         });
-            }
 
+            }
             // if currentResident has more applying to do, put back in Q
             if (!m.hasAssignment(currentResident)) {
                 freeResidents.add(currentResident);
