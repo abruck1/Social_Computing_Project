@@ -6,3 +6,4 @@ gradlew.bat
 .gradle
 gradle/
 build/
+matching_output/*

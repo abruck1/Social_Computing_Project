@@ -1,17 +1,9 @@
 package edu.texas.social_computing.hospitals;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.prefs.Preferences;
-
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 
 @AutoValue
 public abstract class Hospital {
@@ -29,10 +21,22 @@ public abstract class Hospital {
                 id, locationId, capacity, ImmutableList.copyOf(preferences));
     }
 
+    // This currently includes a cheesy way to assign (probably) unique
+    // very poor ranks to unranked residents. This is a band-aid for
+    // getting ranks for residents that have a hospital on their
+    // preference list which does not have that resident on its list.
     public int rankOf(Resident resident) {
-        return getPreferences().contains(resident.getId())
+        return isRanked(resident)
                 ? getPreferences().indexOf(resident.getId())
-                : Integer.MAX_VALUE;
+                : Integer.MAX_VALUE - stringToCharSum(resident.getId());
+    }
+
+    public boolean isRanked(Resident resident) {
+        return getPreferences().contains(resident.getId());
+    }
+
+    private static int stringToCharSum(String s) {
+        return s.chars().reduce((a, b) -> a + b).orElse(0);
     }
 
     /**
