@@ -143,7 +143,7 @@ public class Matching {
         Multimap<String, String> violations = HashMultimap.create();
         for (Resident resident : residentTable.getAll()) {
             String resId = resident.getId();
-            List<String> resPrefs = resident.getPreferences();
+            List<String> resPrefs = resident.getInitialPreferences();
             Hospital residentAssignment = getAssignedHospital(resident);
             int resPrefIndex = resident.rankOf(residentAssignment);
             if (residentAssignment.isRanked(resident) && resPrefIndex > 0) {
