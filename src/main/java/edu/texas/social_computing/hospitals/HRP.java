@@ -62,7 +62,7 @@ public class HRP {
             m.assign(currentResident, hospital);
             if (m.isOverSubscribed(hospital)) {
                 Resident worstResident = m.getWorstAssignedResident(hospital);
-                m.unassign(worstResident);
+                m.unassign(worstResident, hospital);
                 if (!residentsPrefs.get(worstResident).isEmpty() && !worstResident.equals(currentResident)) {
                     freeResidents.add(worstResident);
                 }
@@ -118,7 +118,7 @@ public class HRP {
 
     private static List<String> getNonRankedIds(Hospital h, List<Resident> residents) {
         return residents.stream()
-                .filter(res -> h.rankOf(res) == Integer.MAX_VALUE)
+                .filter(resident -> !h.isRanked(resident))
                 .map(Resident::getId)
                 .collect(ImmutableList.toImmutableList());
     }

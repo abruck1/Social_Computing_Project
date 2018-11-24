@@ -1,9 +1,6 @@
 package edu.texas.social_computing.hospitals;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
 
 import java.util.*;
 
@@ -19,8 +16,7 @@ public class Matching {
         residentAssignments.put(r, h);
     }
 
-    public void unassign(Resident r) {
-        Hospital h = getAssignedHospital(r);
+    public void unassign(Resident r, Hospital h) {
         hospitalAssignments.remove(h, r);
         residentAssignments.remove(r);
     }
@@ -81,7 +77,7 @@ public class Matching {
                 if (!freeViolatingResidents.contains(partner)) {
                     Resident ndPartner = MatchingUtils.worsePlacedResident(this, resident, partner);
                     freeViolatingResidents.add(ndPartner);
-                    unassign(ndPartner);
+                    unassign(ndPartner, getAssignedHospital(ndPartner));
                 }
             }
         }
@@ -92,13 +88,13 @@ public class Matching {
         List<String> violations = new ArrayList<>();
         for (Resident resident : residents) {
             if (resident.hasPartner()) {
-               String partnerId = resident.getPartnerId();
-               Resident partner = residentTable.getResidentById(partnerId);
-               Hospital residentAssignment = getAssignedHospital(resident);
-               Hospital partnerAssignment = getAssignedHospital(partner);
-               if (residentAssignment.getLocationId() != partnerAssignment.getLocationId()) {
-                   violations.add(resident.getId() + ", " + partnerId + " contains a proximity violation");
-               }
+                String partnerId = resident.getPartnerId();
+                Resident partner = residentTable.getResidentById(partnerId);
+                Hospital residentAssignment = getAssignedHospital(resident);
+                Hospital partnerAssignment = getAssignedHospital(partner);
+                if (residentAssignment.getLocationId() != partnerAssignment.getLocationId()) {
+                    violations.add(resident.getId() + ", " + partnerId + " contains a proximity violation");
+                }
             }
         }
         if (violations.size() == 0) {
@@ -128,7 +124,7 @@ public class Matching {
         }
     }
 
-    private boolean isRankedHigherThanWorstMatch(Hospital hospital, String residentId) {
+    public boolean isRankedHigherThanWorstMatch(Hospital hospital, String residentId) {
         Resident worstMatch = getWorstAssignedResident(hospital);
         List<String> hosPrefs = hospital.getPreferences();
         if (!hosPrefs.contains(residentId)) {
@@ -142,29 +138,107 @@ public class Matching {
         return hosResPrefIndex < hosWorstPrefIndex;
     }
 
-    public void validateStability(List<Resident> residents, HospitalTable hospitalTable) {
-        List<String> violations = new ArrayList<>();
-        for (Resident resident : residents) {
+    public void validateStability(ResidentTable residentTable, HospitalTable hospitalTable) {
+        // step 1: find all classical blocking pairs
+        Multimap<String, String> violations = HashMultimap.create();
+        for (Resident resident : residentTable.getAll()) {
             String resId = resident.getId();
             List<String> resPrefs = resident.getPreferences();
             Hospital residentAssignment = getAssignedHospital(resident);
-            int resPrefIndex = hasAssignment(resident) ? resPrefs.indexOf(residentAssignment.getId()) : resPrefs.size();
-            if (resPrefIndex > 0) {
+            int resPrefIndex = resident.rankOf(residentAssignment);
+            if (residentAssignment.isRanked(resident) && resPrefIndex > 0) {
                 for (int i = 0; i < resPrefIndex; i++) {
                     Hospital h = hospitalTable.getHospitalById(resPrefs.get(i));
                     if (isRankedHigherThanWorstMatch(h, resId)) {
-                        violations.add("(" + resId + ", " + h.getId() + ") is a blocking pair");
+                        violations.put(resId, h.getId());
                     }
                 }
             }
         }
-        if (violations.size() == 0) {
-            System.out.println("Passes stability validation");
-        } else {
-            for (String v : violations) {
-                System.out.println(v);
+
+        // step 2: if in a couple, determine if blocking pairs can be resolved without a proximity violation
+        boolean violation = false;
+        for (String violatingResidentId : violations.keySet()) {
+            Resident violatingResident = residentTable.getResidentById(violatingResidentId);
+            if (!violatingResident.hasPartner()) {
+                System.out.println(
+                        "Single resident stability violation: "
+                                + violatingResidentId + " - "
+                                + ImmutableList.copyOf(violations.get(violatingResidentId)));
+                violation = true;
+            } else {
+                String partnerId = violatingResident.getPartnerId();
+                if (checkForPartnerStabilityViolation(
+                        violations,
+                        residentTable.getResidentById(violatingResidentId),
+                        residentTable.getResidentById(partnerId),
+                        hospitalTable)) {
+                    violation = true;
+                }
             }
         }
+
+        if (!violation) {
+            System.out.println("Passes stability validation");
+        }
+    }
+
+    private boolean checkForPartnerStabilityViolation(
+            Multimap<String, String> violations,
+            Resident violatingResident,
+            Resident partner,
+            HospitalTable hospitalTable) {
+
+        List<Hospital> violationHospitals = violations.get(violatingResident.getId()).stream()
+                .map(hospitalTable::getHospitalById)
+                .collect(ImmutableList.toImmutableList());
+
+        List<Hospital> partnerViolationHospitals = violations.get(partner.getId()).stream()
+                .map(hospitalTable::getHospitalById)
+                .collect(ImmutableList.toImmutableList());
+
+        boolean violation = false;
+        for (Hospital violatingHospital : violationHospitals) {
+            for (Hospital partnerViolatingHospital : partnerViolationHospitals) {
+                if (violatingHospital.getLocationId() == partnerViolatingHospital.getLocationId()) {
+                    // check special case of the same hospital, in which case if the partners are
+                    // better than the worst two of the hospital's current assignment, then violation
+                    if (violatingHospital.getId().equals(partnerViolatingHospital.getId())) {
+                        ImmutableList<Resident> residents =
+                                ImmutableList.<Resident>builder()
+                                        .addAll(getAssignedResidents(violatingHospital))
+                                        .add(violatingResident)
+                                        .add(partner)
+                                        .build();
+                        List<Resident> reverseRankSortedResidents = residents.stream()
+                                .sorted(Comparator.comparing(violatingHospital::rankOf))
+                                .collect(ImmutableList.toImmutableList())
+                                .reverse();
+
+                        // if either the violating resident or its partner are in one of the first two positions of this
+                        // list, i.e. are either the worst or second worst ranked of this group by this hospital,
+                        // then there wasn't room for both at this hospital, and not a violation
+                        if (reverseRankSortedResidents.indexOf(violatingResident) < 2 ||
+                                reverseRankSortedResidents.indexOf(partner) < 2) {
+                            continue;
+                        }
+
+                    }
+                    System.out.println(String.format(
+                            "Partner stability violation for residents (%s, %s) at location [%d], " +
+                                    "preferred hospitals (%s, %s), current matches (%s, %s)",
+                            violatingResident.getId(),
+                            partner.getId(),
+                            violatingHospital.getLocationId(),
+                            violatingHospital.getId(),
+                            partnerViolatingHospital.getId(),
+                            getAssignedHospital(violatingResident).getId(),
+                            getAssignedHospital(partner).getId()));
+                    violation = true;
+                }
+            }
+        }
+        return violation;
     }
 
     @Override

@@ -4,12 +4,14 @@ import com.google.common.collect.Sets;
 
 import java.util.*;
 
+import static com.google.common.base.Preconditions.checkState;
+
 public class HRPP {
 
     public static Matching run(HospitalTable hospitalTable, ResidentTable residentTable) {
         // run hospital-resident matching alg (couple agnostic)
         Deque<Resident> initialQueue = new ArrayDeque<>(residentTable.getAll());
-        final Matching matching = HRP.run(hospitalTable, residentTable, initialQueue);
+        Matching matching = HRP.run(hospitalTable, residentTable, initialQueue);
 
         // check all couples for proximity violations (location mismatch)
         Deque<Resident> unmatchedQueue = new ArrayDeque<>(matching.getAllUnassigned(residentTable.getAll()));
@@ -26,8 +28,8 @@ public class HRPP {
             ndResident.setPrefsByLocation(matching.getAssignedHospital(partner).getLocationId(), hospitalTable);
 
             // put back in the queue
-            matching.unassign(ndResident);
-            unmatchedQueue.addFirst(ndResident);
+            matching.unassign(ndResident, matching.getAssignedHospital(ndResident));
+            unmatchedQueue.add(ndResident);
 
             // try to match that person
             HRP.run(hospitalTable, residentTable, unmatchedQueue, matching);
@@ -38,14 +40,15 @@ public class HRPP {
             // if matched -> good
             if (matching.hasAssignment(ndResident)) {
                 updateViolatingResidentQ(matching, residentTable, violatingResidentsQ);
+                giveSinglesAnotherChance(matching, residentTable, hospitalTable, unmatchedQueue);
                 continue;
             }
 
             // Task 2
             // if partners still not proximally matched
             // unmatch BOTH in the couple and add both back to the queue (now no one is dominant)
-            matching.unassign(ndResident);
-            matching.unassign(partner);
+            matching.unassign(ndResident, matching.getAssignedHospital(ndResident));
+            matching.unassign(partner, matching.getAssignedHospital(partner));
 
             // add both partners back to queue
             unmatchedQueue.add(ndResident);
@@ -64,17 +67,10 @@ public class HRPP {
             // make sure all unassigned residents (for whatever reason) are added back into the queue for consideration
             unmatchedQueue.addAll(matching.getAllUnassigned(residentTable.getAll()));
 
-            Optional<Integer> totalRank = residentTable.getAll().stream()
-                    .map(residentTable::getResidentRankProgress)
-                    .reduce((rank1, rank2) -> rank1 + rank2);
+            // give the singles another chance
+            giveSinglesAnotherChance(matching, residentTable, hospitalTable, unmatchedQueue);
 
-            Optional<Integer> maxtotalRank = residentTable.getAll().stream()
-                    .map(res -> res.getInitialPreferences().size())
-                    .reduce((size1, size2) -> size1 + size2);
-
-            if (totalRank.get() % 10 == 0) {
-                System.out.println(totalRank.get() + "/" + maxtotalRank.get());
-            }
+            printProgress(residentTable);
         }
 
         System.out.println("Size of violating Q: " + violatingResidentsQ.size());
@@ -92,5 +88,50 @@ public class HRPP {
         Set<Resident> newViolators = new HashSet<>(computeViolatingResidentQ(matching, residentTable));
         Set<Resident> oldViolators = new HashSet<>(violatingResidentsQ);
         violatingResidentsQ.addAll(Sets.difference(newViolators, oldViolators));
+    }
+
+    private static void giveSinglesAnotherChance(
+            Matching matching,
+            ResidentTable residentTable,
+            HospitalTable hospitalTable,
+            Queue<Resident> unmatchedQueue) {
+
+        residentTable.getAll().stream()
+                .filter(resident -> !resident.hasPartner())
+                .filter(matching::hasAssignment)
+                .filter(resident -> canDoBetter(matching, resident, hospitalTable))
+                .forEach(resident -> {
+                    matching.unassign(resident, matching.getAssignedHospital(resident));
+                    unmatchedQueue.add(resident);
+                });
+    }
+
+    private static boolean canDoBetter(Matching matching, Resident resident, HospitalTable hospitalTable) {
+        Hospital assignedHospital = matching.getAssignedHospital(resident);
+        int rankOfAssigned = resident.rankOf(assignedHospital);
+        checkState(rankOfAssigned < resident.getPreferences().size(),
+                "%s >= %s", rankOfAssigned, resident.getPreferences().size());
+
+        for(int i=0; i<rankOfAssigned; i++) {
+            Hospital nextHospital = hospitalTable.getHospitalById(resident.getPreferences().get(i));
+            if(matching.isRankedHigherThanWorstMatch(nextHospital, resident.getId())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static void printProgress(ResidentTable residentTable) {
+        Optional<Integer> totalRank = residentTable.getAll().stream()
+                .map(residentTable::getResidentRankProgress)
+                .reduce((rank1, rank2) -> rank1 + rank2);
+
+        Optional<Integer> maxtotalRank = residentTable.getAll().stream()
+                .map(res -> res.getInitialPreferences().size())
+                .reduce((size1, size2) -> size1 + size2);
+
+        if (totalRank.get() % 10 == 0) {
+            System.out.println(totalRank.get() + "/" + maxtotalRank.get());
+        }
     }
 }
