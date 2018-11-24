@@ -23,9 +23,9 @@ public class Main {
         Matching finalMatch = HRPP.run(hospitalTable, residentTable);
         finalMatch.validateProximities(residents, residentTable);
         finalMatch.validateCapacities(hospitals);
-        finalMatch.validateStability(residents, hospitalTable);
+        finalMatch.validateStability(residents, hospitalTable, residentTable);
 
-        finalMatch.outputMatchingToCsv("testRun2", residents, residentTable, hospitals);
+        finalMatch.outputMatchingToCsv("testFix", residents, residentTable, hospitals);
         System.out.println("Done");
 
     }

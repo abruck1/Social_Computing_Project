@@ -147,10 +147,15 @@ public class Matching {
         return hosResPrefIndex < hosWorstPrefIndex;
     }
 
-    public void validateStability(List<Resident> residents, HospitalTable hospitalTable) {
+    public void validateStability(List<Resident> residents, HospitalTable hospitalTable, ResidentTable residentTable) {
         List<String> violations = new ArrayList<>();
         for (Resident resident : residents) {
             String resId = resident.getId();
+            if (resident.hasPartner()) {
+                Resident partner = residentTable.getResidentById(resident.getPartnerId());
+                Resident ndResident = MatchingUtils.worsePlacedResident(this, resident, partner);
+                ndResident.setPrefsByLocation(ndResident.equals(resident) ? this.getAssignedHospital(partner).getLocationId() : this.getAssignedHospital(resident).getLocationId(), hospitalTable);
+            }
             List<String> resPrefs = resident.getPreferences();
             Hospital residentAssignment = getAssignedHospital(resident);
             int resPrefIndex = hasAssignment(resident) ? resPrefs.indexOf(residentAssignment.getId()) : resPrefs.size();
