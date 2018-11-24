@@ -168,7 +168,7 @@ public class Matching {
                 violation = true;
             } else {
                 String partnerId = violatingResident.getPartnerId();
-                if (checkForPartnerStabilityViolation(
+                if (hasPartnerStabilityViolation(
                         violations,
                         residentTable.getResidentById(violatingResidentId),
                         residentTable.getResidentById(partnerId),
@@ -183,7 +183,7 @@ public class Matching {
         }
     }
 
-    private boolean checkForPartnerStabilityViolation(
+    private boolean hasPartnerStabilityViolation(
             Multimap<String, String> violations,
             Resident violatingResident,
             Resident partner,
