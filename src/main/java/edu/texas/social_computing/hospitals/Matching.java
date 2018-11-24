@@ -193,14 +193,14 @@ public class Matching {
         List<String> resHeaders = new ArrayList<>(Arrays.asList(
                 "residentId",
                 "residentAssignment",
+                "partnerId",
+                "partnerAssignment",
                 "residentAssignmentLocation",
                 "residentAssignmentRank",
                 "residentInitialPreferences",
                 "residentFinalPreferences",
                 "hasPartner",
                 "isAnchorPartner",
-                "partnerId",
-                "partnerAssignment",
                 "partnerAssignmentLocation",
                 "partnerAssignmentRank",
                 "partnerInitialPreferences",
@@ -212,6 +212,7 @@ public class Matching {
                 "hospitalLocation",
                 "capacity",
                 "assignmentCount",
+                "filledPercentage",
                 "preferences",
                 "assignments",
                 "assignmentRanks"
@@ -225,25 +226,31 @@ public class Matching {
             String partnerId = resident.getPartnerId();
             Resident partner = residentTable.getResidentById(partnerId);
             Hospital partnerAssignment = getAssignedHospital(partner);
-            String hasPartner = resident.hasPartner() ? "true" : "false";
-            String isAnchorPartner = hasPartner.equals("true") ? ((resInitPrefs.equals(resPrefs)) ? "true" : "false") : "NA";
+            boolean hasPartner = resident.hasPartner();
+            String isAnchorPartner;
+            if (hasPartner) {
+                Resident ndResident = MatchingUtils.worsePlacedResident(this, resident, partner);
+                isAnchorPartner = ndResident.getId().equals(resident.getId()) ? "false" : "true";
+            } else {
+                isAnchorPartner = "NA";
+            }
 
             // build output
             List<String> resRow = new ArrayList<>(Arrays.asList(
                     resident.getId(),
                     residentAssignment.getId(),
+                    (hasPartner ? partnerId : "NA"),
+                    (hasPartner ? partnerAssignment.getId() : "NA"),
                     Integer.toString(residentAssignment.getLocationId()),
                     Integer.toString(resident.rankOf(residentAssignment)),
                     getPrefString(resInitPrefs),
                     getPrefString(resPrefs),
-                    hasPartner,
+                    (hasPartner ? "true" : "false"),
                     isAnchorPartner,
-                    (hasPartner.equals("true") ? partnerId : "NA"),
-                    (hasPartner.equals("true") ? partnerAssignment.getId() : "NA"),
-                    (hasPartner.equals("true") ? Integer.toString(partnerAssignment.getLocationId()) : "NA"),
-                    (hasPartner.equals("true") ? Integer.toString(partner.rankOf(partnerAssignment)) : "NA"),
-                    (hasPartner.equals("true") ? getPrefString(partner.getInitialPreferences()) : "NA"),
-                    (hasPartner.equals("true") ? getPrefString(partner.getPreferences()) : "NA")
+                    (hasPartner ? Integer.toString(partnerAssignment.getLocationId()) : "NA"),
+                    (hasPartner ? Integer.toString(partner.rankOf(partnerAssignment)) : "NA"),
+                    (hasPartner ? getPrefString(partner.getInitialPreferences()) : "NA"),
+                    (hasPartner ? getPrefString(partner.getPreferences()) : "NA")
             ));
             resCSV.add(String.join(", ", resRow));
         }
@@ -253,6 +260,9 @@ public class Matching {
             List<Resident> assignments = getAssignedResidents(hospital);
             List<String> assignmentIds = new ArrayList<>();
             List<String> assignmentRanks = new ArrayList<>();
+            Integer capacity = hospital.getCapacity();
+            Integer assignmentCount = assignments.size();
+            float percentFull = (float) assignmentCount / capacity;
             for (Resident res : assignments) {
                 String resId = res.getId();
                 assignmentIds.add(resId);
@@ -262,8 +272,9 @@ public class Matching {
             List<String> hosRow = new ArrayList<>(Arrays.asList(
                     hospital.getId(),
                     Integer.toString(hospital.getLocationId()),
-                    Integer.toString(hospital.getCapacity()),
-                    Integer.toString(assignments.size()),
+                    Integer.toString(capacity),
+                    Integer.toString(assignmentCount),
+                    Float.toString(percentFull),
                     getPrefString(hosPrefs),
                     getPrefString(assignmentIds),
                     getPrefString(assignmentRanks)
