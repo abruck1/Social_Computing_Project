@@ -1,8 +1,5 @@
 package edu.texas.social_computing.hospitals;
 
-
-import com.google.common.collect.ImmutableList;
-
 import java.io.FileNotFoundException;
 import java.util.List;
 
@@ -10,15 +7,12 @@ public class Main {
 
     public static void main(String[] args) throws FileNotFoundException {
 
-        // has a single-resident stability
         //String resFile = "./resources/test_hos5_loc2_res16_coup3_residents.csv";
         //String hosFile = "./resources/test_hos5_loc2_res16_coup3_hospitals.csv";
 
-        // has a capacity violation
         String resFile = "./resources/test_hos50_loc50_res100_coup50_residents.csv";
         String hosFile = "./resources/test_hos50_loc50_res100_coup50_hospitals.csv";
 
-        // has an infinite loop!
         //String resFile = "./resources/test_hos50_loc50_res150_coup20_residents.csv";
         //String hosFile = "./resources/test_hos50_loc50_res150_coup20_hospitals.csv";
 
@@ -51,8 +45,5 @@ public class Main {
         finalMatch.validateCapacities(hospitals);
         finalMatch.validateStability(residentTable, hospitalTable);
         System.out.println("Done");
-
-        System.out.println(finalMatch.getAssignedResidents(hospitalTable.getHospitalById("H44")).stream().map(Resident::getId).collect(ImmutableList.toImmutableList()));
-        System.out.println(finalMatch.getAssignedResidents(hospitalTable.getHospitalById("H27")).stream().map(Resident::getId).collect(ImmutableList.toImmutableList()));
     }
 }
