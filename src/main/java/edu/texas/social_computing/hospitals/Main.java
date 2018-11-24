@@ -43,8 +43,8 @@ public class Main {
         System.out.println(finalMatch);
         finalMatch.validateProximities(residents, residentTable);
         finalMatch.validateCapacities(hospitals);
-        finalMatch.validateStability(residentTable, hospitalTable);
         finalMatch.outputMatchingToCsv("testFix", residents, residentTable, hospitals);
+        finalMatch.outputMatchingToCsv("test_export", residents, residentTable, hospitals);
         System.out.println("Done");
     }
 }
