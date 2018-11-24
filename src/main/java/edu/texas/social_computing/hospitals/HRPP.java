@@ -1,6 +1,7 @@
 package edu.texas.social_computing.hospitals;
 
 import com.google.common.collect.Sets;
+import static com.google.common.base.Preconditions.checkState;
 
 import java.util.*;
 
@@ -41,6 +42,8 @@ public class HRPP {
                 continue;
             }
 
+            giveSinglesAnotherChance(matching, residentTable, hospitalTable, unmatchedQueue);
+
             // Task 2
             // if partners still not proximally matched
             // unmatch BOTH in the couple and add both back to the queue (now no one is dominant)
@@ -64,6 +67,8 @@ public class HRPP {
             // make sure all unassigned residents (for whatever reason) are added back into the queue for consideration
             unmatchedQueue.addAll(matching.getAllUnassigned(residentTable.getAll()));
 
+            giveSinglesAnotherChance(matching, residentTable, hospitalTable, unmatchedQueue);
+
             Optional<Integer> totalRank = residentTable.getAll().stream()
                     .map(residentTable::getResidentRankProgress)
                     .reduce((rank1, rank2) -> rank1 + rank2);
@@ -80,6 +85,35 @@ public class HRPP {
         System.out.println("Size of violating Q: " + violatingResidentsQ.size());
 
         return matching;
+    }
+
+    private static void giveSinglesAnotherChance(
+            Matching matching,
+            ResidentTable residentTable,
+            HospitalTable hospitalTable,
+            Queue<Resident> unmatchedQueue) {
+        residentTable.getAll().stream()
+                .filter(resident -> !resident.hasPartner())
+                .filter(matching::hasAssignment)
+                .filter(resident -> canDoBetter(matching, resident, hospitalTable))
+                .forEach(resident -> {
+                    matching.unassign(resident);
+                    unmatchedQueue.add(resident);
+                });
+    }
+
+    private static boolean canDoBetter(Matching matching, Resident resident, HospitalTable hospitalTable) {
+        Hospital assignedHospital = matching.getAssignedHospital(resident);
+        int rankOfAssigned = resident.rankOf(assignedHospital);
+        checkState(rankOfAssigned < resident.getPreferences().size(),
+                "%s >= %s", rankOfAssigned, resident.getPreferences().size());
+        for(int i=0; i<rankOfAssigned; i++) {
+            Hospital nextHospital = hospitalTable.getHospitalById(resident.getPreferences().get(i));
+            if(matching.isRankedHigherThanWorstMatch(nextHospital, resident.getId())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static Deque<Resident> computeViolatingResidentQ(Matching matching, ResidentTable residentTable) {

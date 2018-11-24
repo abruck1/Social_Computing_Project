@@ -133,7 +133,7 @@ public class Matching {
         }
     }
 
-    private boolean isRankedHigherThanWorstMatch(Hospital hospital, String residentId) {
+    public boolean isRankedHigherThanWorstMatch(Hospital hospital, String residentId) {
         Resident worstMatch = getWorstAssignedResident(hospital);
         List<String> hosPrefs = hospital.getPreferences();
         if (!hosPrefs.contains(residentId)) {
