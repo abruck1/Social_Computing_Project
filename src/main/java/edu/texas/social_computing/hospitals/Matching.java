@@ -88,6 +88,85 @@ public class Matching {
         return freeViolatingResidents;
     }
 
+    public void validateProximities(List<Resident> residents, ResidentTable residentTable) {
+        List<String> violations = new ArrayList<>();
+        for (Resident resident : residents) {
+            if (resident.hasPartner()) {
+               String partnerId = resident.getPartnerId();
+               Resident partner = residentTable.getResidentById(partnerId);
+               Hospital residentAssignment = getAssignedHospital(resident);
+               Hospital partnerAssignment = getAssignedHospital(partner);
+               if (residentAssignment.getLocationId() != partnerAssignment.getLocationId()) {
+                   violations.add(resident.getId() + ", " + partnerId + " contains a proximity violation");
+               }
+            }
+        }
+        if (violations.size() == 0) {
+            System.out.println("Passes proximity validation");
+        } else {
+            for (String v : violations) {
+                System.out.println(v);
+            }
+        }
+    }
+
+    public void validateCapacities(List<Hospital> hospitals) {
+        List<String> violations = new ArrayList<>();
+        for (Hospital hospital : hospitals) {
+            Integer assignmentSize = getAssignedResidents(hospital).size();
+            Integer capacity = hospital.getCapacity();
+            if (assignmentSize > capacity) {
+                violations.add(hospital.getId() + " exceeds capacity: " + assignmentSize + " > " + capacity);
+            }
+        }
+        if (violations.size() == 0) {
+            System.out.println("Passes capacity validation");
+        } else {
+            for (String v : violations) {
+                System.out.println(v);
+            }
+        }
+    }
+
+    private boolean isRankedHigherThanWorstMatch(Hospital hospital, String residentId) {
+        Resident worstMatch = getWorstAssignedResident(hospital);
+        List<String> hosPrefs = hospital.getPreferences();
+        if (!hosPrefs.contains(residentId)) {
+            return false;
+        }
+        if (worstMatch == null) {
+            return true;
+        }
+        int hosResPrefIndex = hosPrefs.indexOf(residentId);
+        int hosWorstPrefIndex = hosPrefs.indexOf(worstMatch.getId());
+        return hosResPrefIndex < hosWorstPrefIndex;
+    }
+
+    public void validateStability(List<Resident> residents, HospitalTable hospitalTable) {
+        List<String> violations = new ArrayList<>();
+        for (Resident resident : residents) {
+            String resId = resident.getId();
+            List<String> resPrefs = resident.getPreferences();
+            Hospital residentAssignment = getAssignedHospital(resident);
+            int resPrefIndex = hasAssignment(resident) ? resPrefs.indexOf(residentAssignment.getId()) : resPrefs.size();
+            if (resPrefIndex > 0) {
+                for (int i = 0; i < resPrefIndex; i++) {
+                    Hospital h = hospitalTable.getHospitalById(resPrefs.get(i));
+                    if (isRankedHigherThanWorstMatch(h, resId)) {
+                        violations.add("(" + resId + ", " + h.getId() + ") is a blocking pair");
+                    }
+                }
+            }
+        }
+        if (violations.size() == 0) {
+            System.out.println("Passes stability validation");
+        } else {
+            for (String v : violations) {
+                System.out.println(v);
+            }
+        }
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

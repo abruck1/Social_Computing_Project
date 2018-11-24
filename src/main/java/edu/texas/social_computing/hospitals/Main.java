@@ -20,7 +20,10 @@ public class Main {
         System.out.println("generated tables");
 
         // call HRPP
-        HRPP.run(hospitalTable, residentTable);
+        Matching finalMatch = HRPP.run(hospitalTable, residentTable);
+        finalMatch.validateProximities(residents, residentTable);
+        finalMatch.validateCapacities(hospitals);
+        finalMatch.validateStability(residents, hospitalTable);
         System.out.println("Done");
 
     }
