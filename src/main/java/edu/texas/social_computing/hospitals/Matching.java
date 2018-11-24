@@ -140,7 +140,24 @@ public class Matching {
 
     public void validateStability(ResidentTable residentTable, HospitalTable hospitalTable) {
         // step 1: find all classical blocking pairs
+        // these are the stability violations found when considering all residents as singles
+        Multimap<String, String> violations = findSingleStyleViolations(residentTable, hospitalTable);
+
+        // step 2: if in a couple, determine if blocking pairs can be resolved without a proximity violation. If they
+        // can, then this is a real stability violation. If not in a couple, then this is a real violation
+        boolean violation = hasActualStabilityViolations(violations, residentTable, hospitalTable);
+
+        if (!violation) {
+            System.out.println("Passes stability validation");
+        }
+    }
+
+    // Find any classical stability violations. That is, find any blocking pairs (R, H) where
+    // R prefers H to R's current assignment, and H prefers R to H's current worst resident.
+    private Multimap<String, String> findSingleStyleViolations(
+            ResidentTable residentTable, HospitalTable hospitalTable) {
         Multimap<String, String> violations = HashMultimap.create();
+
         for (Resident resident : residentTable.getAll()) {
             String resId = resident.getId();
             List<String> resPrefs = resident.getInitialPreferences();
@@ -155,8 +172,16 @@ public class Matching {
                 }
             }
         }
+        return violations;
+    }
 
-        // step 2: if in a couple, determine if blocking pairs can be resolved without a proximity violation
+    // Determine whether a set of classical, single-style violations contains any true violations, accounting for
+    // partners. A partner stability violation occurs if two partners R1 and R2, who are currently matched to
+    // hospitals H1 and H2, could be matched to two different hospitals H1' and H2' such that (R1, H1') and (R2, H2')
+    // are classical blocking pairs, and H1' and H2' are in the same location. In the special case that H1'==H2', then
+    // H1' must prefer both R1 and R2 to the current worst two residents.
+    private boolean hasActualStabilityViolations(
+            Multimap<String, String> violations, ResidentTable residentTable, HospitalTable hospitalTable) {
         boolean violation = false;
         for (String violatingResidentId : violations.keySet()) {
             Resident violatingResident = residentTable.getResidentById(violatingResidentId);
@@ -177,10 +202,7 @@ public class Matching {
                 }
             }
         }
-
-        if (!violation) {
-            System.out.println("Passes stability validation");
-        }
+        return violation;
     }
 
     private boolean hasPartnerStabilityViolation(
