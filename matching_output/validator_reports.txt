@@ -1,0 +1,50 @@
+
+export_hos5_loc2_res16_coup3:
+residents: 16
+hospitals: 5
+generated tables
+Size of violating Q: 0
+Passes proximity validation
+Passes capacity validation
+Passes stability validation
+
+export_hos50_loc50_res100_coup50:
+residents: 100
+hospitals: 50
+generated tables
+Size of violating Q: 0
+Passes proximity validation
+Passes capacity validation
+(R14, H27) is a blocking pair
+(R44, H25) is a blocking pair
+
+export_hos50_loc50_res150_coup20:
+residents: 150
+hospitals: 50
+generated tables
+Size of violating Q: 0
+Passes proximity validation
+Passes capacity validation
+Passes stability validation
+
+export_hos100_loc10_res200_coup50:
+residents: 200
+hospitals: 100
+generated tables
+Size of violating Q: 0
+Passes proximity validation
+Passes capacity validation
+(R137, H68) is a blocking pair
+(R145, H0) is a blocking pair
+
+export_hos300_loc50_res500_coup100:
+loaded Files
+residents: 500
+hospitals: 300
+generated tables
+Size of violating Q: 0
+Passes proximity validation
+Passes capacity validation
+(R122, H231) is a blocking pair
+(R287, H150) is a blocking pair
+(R476, H208) is a blocking pair
