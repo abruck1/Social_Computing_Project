@@ -58,27 +58,31 @@ public class HRP {
             }
             List<String> currentResidentPref = residentsPrefs.get(currentResident);
             Hospital hospital = hospitalTable.getHospitalById(currentResidentPref.get(0));
+            residentsPrefs.get(currentResident).remove(hospital.getId());
 
-            m.assign(currentResident, hospital);
-            if (m.isOverSubscribed(hospital)) {
-                Resident worstResident = m.getWorstAssignedResident(hospital);
-                m.unassign(worstResident);
-                if (!residentsPrefs.get(worstResident).isEmpty() && !worstResident.equals(currentResident)) {
-                    freeResidents.add(worstResident);
+            if (hospital.getPreferences().contains(currentResident.getId())) {
+                m.assign(currentResident, hospital);
+
+                if (m.isOverSubscribed(hospital)) {
+                    Resident worstResident = m.getWorstAssignedResident(hospital);
+                    m.unassign(worstResident);
+                    if (!residentsPrefs.get(worstResident).isEmpty() && !worstResident.equals(currentResident)) {
+                        freeResidents.add(worstResident);
+                    }
                 }
-            }
-            if (m.isFull(hospital)) {
-                List<String> badResidentIds = hospital.getWorseThanIds(m.getWorstAssignedResident(hospital));
-                List<String> nonRankedResidentIds = getNonRankedIds(hospital, residentTable.getAll());
+                if (m.isFull(hospital)) {
+                    List<String> badResidentIds = hospital.getWorseThanIds(m.getWorstAssignedResident(hospital));
+                    List<String> nonRankedResidentIds = getNonRankedIds(hospital, residentTable.getAll());
 
-                Stream.of(badResidentIds, nonRankedResidentIds).flatMap(Collection::stream)
-                        .forEach(resId -> {
-                            hospitalsPrefs.remove(resId);
-                            Resident badResident = residentTable.getResidentById(resId);
-                            residentsPrefs.get(badResident).remove(hospital.getId());
-                        });
-            }
+                    Stream.of(badResidentIds, nonRankedResidentIds).flatMap(Collection::stream)
+                            .forEach(resId -> {
+                                hospitalsPrefs.remove(resId);
+                                Resident badResident = residentTable.getResidentById(resId);
+                                residentsPrefs.get(badResident).remove(hospital.getId());
+                            });
+                }
 
+            }
             // if currentResident has more applying to do, put back in Q
             if (!m.hasAssignment(currentResident)) {
                 freeResidents.add(currentResident);

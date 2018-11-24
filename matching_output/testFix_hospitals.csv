@@ -1,0 +1,6 @@
+hospitalId, hospitalLocation, capacity, assignmentCount, filledPercentage, preferences, assignments, assignmentRanks
+H0, 1, 5, 5, 1.0, R1 R14 R15 R2 R4 R10 R12 R0 R11 R5 R3 R9 R8 R7 R13, R4 R9 R2 R11 R7, 4 11 3 8 13
+H1, 0, 4, 4, 1.0, R12 R3 R10 R0 R11 R9 R13 R2 R1 R4 R5 R6 R15 R14, R10 R1 R13 R3, 2 8 6 1
+H2, 1, 5, 3, 0.6, R10 R14 R13 R1 R0 R6 R9 R11 R5 R12 R15 R2 R4 R3, R12 R15 R6, 9 10 5
+H3, 1, 1, 1, 1.0, R6 R2 R10 R0 R4 R11 R13 R15 R3 R1 R9 R5 R14 R7, R14, 12
+H4, 0, 3, 3, 1.0, R10 R15 R0 R9 R6 R5 R8 R13 R11 R2 R3 R14 R4 R1, R0 R8 R5, 2 6 5
