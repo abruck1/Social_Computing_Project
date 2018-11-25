@@ -1,5 +1,7 @@
 package edu.texas.social_computing.hospitals;
 
+import com.google.common.collect.ImmutableList;
+
 import java.io.FileNotFoundException;
 import java.util.*;
 
@@ -36,7 +38,9 @@ public class RHRP {
             Hospital hospital = hospitalTable.getHospitalById(currentResident.getPreferences().get(residentRankProgress));
             residentTable.incrementResidentRankProgress(currentResident);
 
-            tryToMatch(hospital, currentResident, residentTable, freeResidents, m);
+            if (!currentResident.hasPartner()) {
+                tryToMatch(hospital, currentResident, residentTable, freeResidents, m);
+            }
 
             // if current resident has a partner, update partner's pref to their most preferred hospital
             if (currentResident.hasPartner()) {
@@ -47,21 +51,20 @@ public class RHRP {
                 if (!partner.getPreferences().isEmpty() && partnerRankProgress < partner.getPreferences().size()) {
                     Hospital partnerHospital = hospitalTable.getHospitalById(partner.getPreferences().get(residentTable.getResidentRankProgress(partner)));
                     residentTable.incrementResidentRankProgress(partner);
-
-                    // if current resident got assigned then try to match their partner
-                    if (m.hasAssignment(currentResident)) {
-                        tryToMatch(partnerHospital, partner, residentTable, freeResidents, m);
-                    }
+                    tryToMatchCouple(hospital, currentResident, partnerHospital, partner, residentTable, freeResidents, m);
+                } else {
+                    tryToMatch(hospital, currentResident, residentTable, freeResidents, m);
                 }
             }
 
+            giveSinglesAnotherChance(m, residentTable, hospitalTable, freeResidents);
             // if i have a partner check if either of us are unmatched
             if (currentResident.hasPartner()) {
                 Resident partner = residentTable.getResidentById(currentResident.getPartnerId());
                 // if current is not match OR partner is not matched AND has a preference then unassign both and add them to the q
                 if (!m.hasAssignment(currentResident) || (!m.hasAssignment(partner) && !partner.getPreferences().isEmpty())) {
-                    m.unassign(currentResident);
-                    m.unassign(partner);
+                    m.unassign(currentResident, hospital);
+                    m.unassign(partner, m.getAssignedHospital(partner));
                     if (!freeResidents.contains(currentResident)) freeResidents.add(currentResident);
                     if (!freeResidents.contains(partner)) freeResidents.add(partner);
                 }
@@ -82,10 +85,23 @@ public class RHRP {
     }
 
     public static void main(String[] args) throws FileNotFoundException {
-        String resfile = "resources/test_hos5_loc2_res16_coup3_residents.csv";
-        String hosfile = "resources/test_hos5_loc2_res16_coup3_hospitals.csv";
-        List<Resident> residents = FileImporter.importResidents(resfile);
-        List<Hospital> hospitals = FileImporter.importHospitals(hosfile);
+
+//        String resFile = "./resources/test_hos5_loc2_res16_coup3_residents.csv";
+//        String hosFile = "./resources/test_hos5_loc2_res16_coup3_hospitals.csv";
+
+//        String resFile = "./resources/test_hos50_loc50_res100_coup50_residents.csv";
+//        String hosFile = "./resources/test_hos50_loc50_res100_coup50_hospitals.csv";
+
+//        String resFile = "./resources/test_hos50_loc50_res150_coup20_residents.csv";
+//        String hosFile = "./resources/test_hos50_loc50_res150_coup20_hospitals.csv";
+
+//        String resFile = "./resources/test_hos100_loc10_res200_coup50_residents.csv";
+//        String hosFile = "./resources/test_hos100_loc10_res200_coup50_hospitals.csv";
+
+        String resFile = "./resources/test_hos300_loc50_res500_coup100_residents.csv";
+        String hosFile = "./resources/test_hos300_loc50_res500_coup100_hospitals.csv";
+        List<Resident> residents = FileImporter.importResidents(resFile);
+        List<Hospital> hospitals = FileImporter.importHospitals(hosFile);
         System.out.println("loaded Files");
         System.out.println("residents: " + Integer.toString(residents.size()));
         System.out.println("hospitals: " + Integer.toString(hospitals.size()));
@@ -98,7 +114,7 @@ public class RHRP {
         // call HRP
         Matching finalMatch = RHRP.run(hospitalTable, residentTable, new ArrayDeque<>(residentTable.getAll()));
         finalMatch.validateCapacities(hospitals);
-        finalMatch.validateStability(residents, hospitalTable, residentTable);
+        finalMatch.validateStability(residentTable, hospitalTable);
 
         finalMatch.outputMatchingToCsv("RHRP_testFix", residents, residentTable, hospitals);
         System.out.println("Done");
@@ -113,19 +129,98 @@ public class RHRP {
 
             // if hospital now has too many residents
             if (m.isOverSubscribed(h)) {
-                Resident worstResident = m.getWorstAssignedResident(h);
-
-                // unassign the worst resident then add them back to the queue
-                m.unassign(worstResident);
-                if (!freeResidents.contains(worstResident)) freeResidents.add(worstResident);
-
-                if (worstResident.hasPartner()) {
-                    // unassign the worst resident's partner and add the partner back to the queue
-                    Resident worstResidentPartner = residentTable.getResidentById(worstResident.getPartnerId());
-                    m.unassign(worstResidentPartner);
-                    if (!freeResidents.contains(worstResidentPartner)) freeResidents.add(worstResidentPartner);
-                }
+                fixOverSubscribed(h, freeResidents, residentTable, m);
             }
         }
+    }
+
+    private static void tryToMatchCouple(Hospital h, Resident currentResident, Hospital partnerHospital,
+                                         Resident partner, ResidentTable residentTable,
+                                         Queue<Resident> freeResidents, Matching m) {
+        // if both residents are candidates for the hospital
+        // and neither are the worst
+        // and they wont kick each other out if its the same hospital
+        // then assign both
+        // else put them back in the queue if they arent in it
+        if (h.getPreferences().contains(currentResident.getId()) && partnerHospital.getPreferences().contains(partner.getId())) {
+            if (!h.getId().equals(partnerHospital.getId())) {
+                if (m.isRankedHigherThanWorstMatch(h, currentResident.getId()) && m.isRankedHigherThanWorstMatch(partnerHospital, partner.getId())) {
+                    m.assign(currentResident, h);
+                    m.assign(partner, partnerHospital);
+                    if (m.isOverSubscribed(h)) {
+                        fixOverSubscribed(h, freeResidents, residentTable, m);
+                    }
+                    if (m.isOverSubscribed(partnerHospital)) {
+                        fixOverSubscribed(partnerHospital, freeResidents, residentTable, m);
+                    }
+                    return;
+                }
+            } else {
+                if (!worstTwoResidents(h, currentResident, partner, m)) {
+                    m.assign(currentResident, h);
+                    m.assign(partner, partnerHospital);
+                    if (m.isOverSubscribed(h)) {
+                        fixOverSubscribed(h, freeResidents, residentTable, m);
+                    }
+                    if (m.isOverSubscribed(partnerHospital)) {
+                        fixOverSubscribed(partnerHospital, freeResidents, residentTable, m);
+                    }
+                    return;
+                }
+            }
+        } else {
+            if (!freeResidents.contains(currentResident)) freeResidents.add(currentResident);
+            if (!freeResidents.contains(partner)) freeResidents.add(partner);
+        }
+    }
+
+    private static boolean worstTwoResidents(Hospital hospital, Resident r1, Resident r2, Matching m) {
+        ImmutableList<Resident> residents =
+                ImmutableList.<Resident>builder()
+                        .addAll(m.getAssignedResidents(hospital))
+                        .add(r1)
+                        .add(r2)
+                        .build();
+        List<Resident> reverseRankSortedResidents = residents.stream()
+                .sorted(Comparator.comparing(hospital::rankOf))
+                .collect(ImmutableList.toImmutableList())
+                .reverse();
+
+        // if either the violating resident or its partner are in one of the first two positions of this
+        // list, i.e. are either the worst or second worst ranked of this group by this hospital,
+        // then there wasn't room for both at this hospital, and not a violation
+        return reverseRankSortedResidents.indexOf(r1) < 2 || reverseRankSortedResidents.indexOf(r2) < 2;
+    }
+
+    private static void fixOverSubscribed(Hospital h, Queue<Resident> freeResidents, ResidentTable residentTable, Matching m) {
+        Resident worstResident = m.getWorstAssignedResident(h);
+
+        // unassign the worst resident then add them back to the queue
+        m.unassign(worstResident, h);
+        if (!freeResidents.contains(worstResident)) freeResidents.add(worstResident);
+
+        if (worstResident.hasPartner()) {
+            // unassign the worst resident's partner and add the partner back to the queue
+            Resident worstResidentPartner = residentTable.getResidentById(worstResident.getPartnerId());
+            m.unassign(worstResidentPartner, m.getAssignedHospital(worstResidentPartner));
+            if (!freeResidents.contains(worstResidentPartner)) freeResidents.add(worstResidentPartner);
+        }
+    }
+
+    private static void giveSinglesAnotherChance(
+            Matching matching,
+            ResidentTable residentTable,
+            HospitalTable hospitalTable,
+            Queue<Resident> unmatchedQueue) {
+
+        residentTable.getAll().stream()
+                .filter(resident -> !resident.hasPartner())
+                .filter(matching::hasAssignment)
+                .filter(resident -> HRPP.canDoBetter(matching, resident, hospitalTable))
+                .forEach(resident -> {
+                    residentTable.resetResidentRankProgress(resident);
+                    matching.unassign(resident, matching.getAssignedHospital(resident));
+                    unmatchedQueue.add(resident);
+                });
     }
 }

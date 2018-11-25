@@ -92,7 +92,7 @@ public class HRPP {
         violatingResidentsQ.addAll(Sets.difference(newViolators, oldViolators));
     }
 
-    private static void giveSinglesAnotherChance(
+    public static void giveSinglesAnotherChance(
             Matching matching,
             ResidentTable residentTable,
             HospitalTable hospitalTable,
@@ -108,7 +108,7 @@ public class HRPP {
                 });
     }
 
-    private static boolean canDoBetter(Matching matching, Resident resident, HospitalTable hospitalTable) {
+    public static boolean canDoBetter(Matching matching, Resident resident, HospitalTable hospitalTable) {
         Hospital assignedHospital = matching.getAssignedHospital(resident);
         int rankOfAssigned = resident.rankOf(assignedHospital);
         checkState(rankOfAssigned < resident.getPreferences().size(),
