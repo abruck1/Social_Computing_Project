@@ -86,8 +86,8 @@ public class RHRP {
 
     public static void main(String[] args) throws FileNotFoundException {
 
-//        String resFile = "./resources/test_hos5_loc2_res16_coup3_residents.csv";
-//        String hosFile = "./resources/test_hos5_loc2_res16_coup3_hospitals.csv";
+        String resFile = "./resources/test_hos5_loc2_res16_coup3_residents.csv";
+        String hosFile = "./resources/test_hos5_loc2_res16_coup3_hospitals.csv";
 
 //        String resFile = "./resources/test_hos50_loc50_res100_coup50_residents.csv";
 //        String hosFile = "./resources/test_hos50_loc50_res100_coup50_hospitals.csv";
@@ -98,8 +98,8 @@ public class RHRP {
 //        String resFile = "./resources/test_hos100_loc10_res200_coup50_residents.csv";
 //        String hosFile = "./resources/test_hos100_loc10_res200_coup50_hospitals.csv";
 
-        String resFile = "./resources/test_hos300_loc50_res500_coup100_residents.csv";
-        String hosFile = "./resources/test_hos300_loc50_res500_coup100_hospitals.csv";
+//        String resFile = "./resources/test_hos300_loc50_res500_coup100_residents.csv";
+//        String hosFile = "./resources/test_hos300_loc50_res500_coup100_hospitals.csv";
         List<Resident> residents = FileImporter.importResidents(resFile);
         List<Hospital> hospitals = FileImporter.importHospitals(hosFile);
         System.out.println("loaded Files");
@@ -115,8 +115,7 @@ public class RHRP {
         Matching finalMatch = RHRP.run(hospitalTable, residentTable, new ArrayDeque<>(residentTable.getAll()));
         finalMatch.validateCapacities(hospitals);
         finalMatch.validateStability(residentTable, hospitalTable);
-
-        finalMatch.outputMatchingToCsv("RHRP_testFix", residents, residentTable, hospitals);
+        finalMatch.outputMatchingToCsv("RHRP_hos5_loc2_res16_coup3", residents, residentTable, hospitals);
         System.out.println("Done");
     }
 

@@ -1,0 +1,17 @@
+residentId, residentAssignment, partnerId, partnerAssignment, residentAssignmentLocation, residentAssignmentRank, residentInitialPreferences, residentFinalPreferences, hasPartner, isAnchorPartner, partnerAssignmentLocation, partnerAssignmentRank, partnerInitialPreferences, partnerFinalPreferences
+R0, H4, NA, NA, 0, 0, H4 H2 H3 H0 H1, H4 H2 H3 H0 H1, false, NA, NA, NA, NA, NA
+R1, H1, NA, NA, 0, 0, H1 H0 H2 H3 H4, H1 H0 H2 H3 H4, false, NA, NA, NA, NA, NA
+R2, H0, NA, NA, 1, 0, H0 H1 H2 H3 H4, H0 H1 H2 H3 H4, false, NA, NA, NA, NA, NA
+R3, NO_MATCH, R8, NO_MATCH, -1, 2147483647, H4 H0 H3 H1 H2, H4 H0 H3 H1 H2, true, false, -1, 2147483647, H4 H0, H4 H0
+R4, H1, R12, H2, 0, 0, H1 H0 H2 H4 H3, H1 H0 H2 H4 H3, true, false, 1, 0, H2 H0 H1, H2 H0 H1
+R5, H4, NA, NA, 0, 0, H4 H1 H2 H3 H0, H4 H1 H2 H3 H0, false, NA, NA, NA, NA, NA
+R6, NO_MATCH, R7, NO_MATCH, -1, 2147483647, H0 H3 H1 H4 H2, H0 H3 H1 H4 H2, true, false, -1, 2147483647, H3 H0, H3 H0
+R7, NO_MATCH, R6, NO_MATCH, -1, 2147483647, H3 H0, H3 H0, true, false, -1, 2147483647, H0 H3 H1 H4 H2, H0 H3 H1 H4 H2
+R8, NO_MATCH, R3, NO_MATCH, -1, 2147483647, H4 H0, H4 H0, true, false, -1, 2147483647, H4 H0 H3 H1 H2, H4 H0 H3 H1 H2
+R9, H0, NA, NA, 1, 0, H0 H2 H1 H4 H3, H0 H2 H1 H4 H3, false, NA, NA, NA, NA, NA
+R10, H1, NA, NA, 0, 0, H1 H3 H4 H0 H2, H1 H3 H4 H0 H2, false, NA, NA, NA, NA, NA
+R11, H0, NA, NA, 1, 0, H0 H4 H2 H3 H1, H0 H4 H2 H3 H1, false, NA, NA, NA, NA, NA
+R12, H2, R4, H1, 1, 0, H2 H0 H1, H2 H0 H1, true, false, 0, 0, H1 H0 H2 H4 H3, H1 H0 H2 H4 H3
+R13, H0, NA, NA, 1, 0, H0 H4 H1 H3 H2, H0 H4 H1 H3 H2, false, NA, NA, NA, NA, NA
+R14, H3, NA, NA, 1, 0, H3 H0 H1 H2 H4, H3 H0 H1 H2 H4, false, NA, NA, NA, NA, NA
+R15, H2, NA, NA, 1, 0, H2 H3 H4 H0 H1, H2 H3 H4 H0 H1, false, NA, NA, NA, NA, NA
