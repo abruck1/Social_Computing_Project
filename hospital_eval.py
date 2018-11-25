@@ -2,11 +2,17 @@ import pandas as pd
 import numpy as np
 import pprint
 
-file_names = ["export_hos100_loc10_res200_coup50_hospitals.csv",
-"export_hos300_loc50_res500_coup100_hospitals.csv",
-"export_hos50_loc50_res100_coup50_hospitals.csv",
-"export_hos50_loc50_res150_coup20_hospitals.csv",
-"export_hos5_loc2_res16_coup3_hospitals.csv"]
+# file_names = ["matching_output/export_hos100_loc10_res200_coup50_hospitals.csv",
+# "matching_output/export_hos300_loc50_res500_coup100_hospitals.csv",
+# "matching_output/export_hos50_loc50_res100_coup50_hospitals.csv",
+# "matching_output/export_hos50_loc50_res150_coup20_hospitals.csv",
+# "matching_output/export_hos5_loc2_res16_coup3_hospitals.csv"]
+
+file_names = ["matching_output/RHRP_hos100_loc10_res200_coup50_hospitals.csv",
+"matching_output/RHRP_hos300_loc50_res500_coup100_hospitals.csv",
+"matching_output/RHRP_hos50_loc50_res100_coup50_hospitals.csv",
+"matching_output/RHRP_hos50_loc50_res150_coup20_hospitals.csv",
+"matching_output/RHRP_hos5_loc2_res16_coup3_hospitals.csv"]
 
 def get_happiness(hospital_prefs, assignment_ranks, capacities):
     happiness = []
