@@ -2,16 +2,16 @@ residentId, residentAssignment, partnerId, partnerAssignment, residentAssignment
 R0, H4, NA, NA, 0, 0, H4 H2 H3 H0 H1, H4 H2 H3 H0 H1, false, NA, NA, NA, NA, NA
 R1, H1, NA, NA, 0, 0, H1 H0 H2 H3 H4, H1 H0 H2 H3 H4, false, NA, NA, NA, NA, NA
 R2, H0, NA, NA, 1, 0, H0 H1 H2 H3 H4, H0 H1 H2 H3 H4, false, NA, NA, NA, NA, NA
-R3, H1, R8, H4, 0, 1, H4 H0 H3 H1 H2, H4 H1, true, false, 0, 0, H4 H0, H4 H0
-R4, H0, R12, H2, 1, 0, H1 H0 H2 H4 H3, H0 H2 H3, true, false, 1, 0, H2 H0 H1, H2 H0
+R3, H1, R8, H4, 0, 3, H4 H0 H3 H1 H2, H4 H0 H3 H1 H2, true, false, 0, 0, H4 H0, H4 H0
+R4, H0, R12, H2, 1, 1, H1 H0 H2 H4 H3, H1 H0 H2 H4 H3, true, false, 1, 0, H2 H0 H1, H2 H0 H1
 R5, H4, NA, NA, 0, 0, H4 H1 H2 H3 H0, H4 H1 H2 H3 H0, false, NA, NA, NA, NA, NA
-R6, H2, R7, H0, 1, 0, H0 H3 H1 H4 H2, H2, true, true, 1, 1, H3 H0, H3 H0
-R7, H0, R6, H2, 1, 1, H3 H0, H3 H0, true, false, 1, 0, H0 H3 H1 H4 H2, H2
-R8, H4, R3, H1, 0, 0, H4 H0, H4 H0, true, true, 0, 1, H4 H0 H3 H1 H2, H4 H1
+R6, H2, R7, H0, 1, 2, H0 H3 H1 H4 H2, H1 H4 H2, true, false, 1, 1, H3 H0, H3 H0
+R7, H0, R6, H2, 1, 1, H3 H0, H3 H0, true, true, 1, 2, H0 H3 H1 H4 H2, H1 H4 H2
+R8, H4, R3, H1, 0, 0, H4 H0, H4 H0, true, true, 0, 3, H4 H0 H3 H1 H2, H4 H0 H3 H1 H2
 R9, H0, NA, NA, 1, 0, H0 H2 H1 H4 H3, H0 H2 H1 H4 H3, false, NA, NA, NA, NA, NA
 R10, H1, NA, NA, 0, 0, H1 H3 H4 H0 H2, H1 H3 H4 H0 H2, false, NA, NA, NA, NA, NA
 R11, H0, NA, NA, 1, 0, H0 H4 H2 H3 H1, H0 H4 H2 H3 H1, false, NA, NA, NA, NA, NA
-R12, H2, R4, H0, 1, 0, H2 H0 H1, H2 H0, true, false, 1, 0, H1 H0 H2 H4 H3, H0 H2 H3
+R12, H2, R4, H0, 1, 0, H2 H0 H1, H2 H0 H1, true, true, 1, 1, H1 H0 H2 H4 H3, H1 H0 H2 H4 H3
 R13, H1, NA, NA, 0, 2, H0 H4 H1 H3 H2, H0 H4 H1 H3 H2, false, NA, NA, NA, NA, NA
 R14, H3, NA, NA, 1, 0, H3 H0 H1 H2 H4, H3 H0 H1 H2 H4, false, NA, NA, NA, NA, NA
 R15, H2, NA, NA, 1, 0, H2 H3 H4 H0 H1, H2 H3 H4 H0 H1, false, NA, NA, NA, NA, NA
