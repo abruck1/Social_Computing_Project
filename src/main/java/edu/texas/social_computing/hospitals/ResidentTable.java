@@ -43,4 +43,8 @@ public class ResidentTable {
     public void incrementResidentRankProgress(Resident r) {
         residentRankProgress.put(r.getId(), residentRankProgress.get(r.getId()) + 1);
     }
+
+    public void resetResidentRankProgress(Resident r) {
+        residentRankProgress.put(r.getId(), 0);
+    }
 }
